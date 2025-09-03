@@ -164,7 +164,7 @@ const Analytics: React.FC = () => {
       {/* KPI Cards */}
       {kpiData && (
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <KPICard
               title="Total Observations"
               value={kpiData.totalObservations}
@@ -173,7 +173,7 @@ const Analytics: React.FC = () => {
               trend={5}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <KPICard
               title="Open Observations"
               value={kpiData.openObservations}
@@ -182,7 +182,7 @@ const Analytics: React.FC = () => {
               trend={-2}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <KPICard
               title="Overdue SLA"
               value={kpiData.overdueSLA}
@@ -191,7 +191,7 @@ const Analytics: React.FC = () => {
               trend={-8}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <KPICard
               title="Completed Audits"
               value={kpiData.completedAudits}
@@ -200,7 +200,7 @@ const Analytics: React.FC = () => {
               trend={12}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <KPICard
               title="Active Permits"
               value={kpiData.activePermits}
@@ -208,7 +208,7 @@ const Analytics: React.FC = () => {
               color="info.main"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <KPICard
               title="Incident Rate"
               value={kpiData.incidentRate}
@@ -222,7 +222,7 @@ const Analytics: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Department Performance */}
-        <Grid item xs={12} md={6}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -257,7 +257,7 @@ const Analytics: React.FC = () => {
         </Grid>
 
         {/* Hazard Analysis */}
-        <Grid item xs={12} md={6}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>

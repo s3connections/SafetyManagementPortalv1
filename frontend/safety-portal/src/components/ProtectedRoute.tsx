@@ -1,316 +1,276 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { ROUTES, USER_ROLES, STORAGE_KEYS, API_ENDPOINTS, API_BASE_URL } from './constants';
-import { useNotification } from './NotificationContext';
+import { ROUTES, USER_ROLES, STORAGE_KEYS, API_ENDPOINTS, API_BASE_URL } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 // User interface
 export interface User {
-  id: string;
+  id: number;
+  username: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
   role: string;
-  permissions: string[];
-  lastLogin?: string;
+  plantId?: number;
+  departmentId?: number;
   isActive: boolean;
+  lastLoginAt?: string;
 }
 
-// Auth state interface
-interface AuthState {
+// Auth context interface
+interface AuthContextType {
+  user: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: User | null;
-  token: string | null;
+  login: (username: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  refreshToken: () => Promise<boolean>;
+  hasRole: (roles: string | string[]) => boolean;
 }
 
-// Props interface
+// Auth context
+const AuthContext = React.createContext<AuthContextType | null>(null);
+
+// Protected route props
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRoles?: string[];
-  requiredPermissions?: string[];
-  fallbackPath?: string;
-  showUnauthorizedMessage?: boolean;
 }
 
-// Authentication service
-class AuthService {
-  private static instance: AuthService;
-
-  public static getInstance(): AuthService {
-    if (!AuthService.instance) {
-      AuthService.instance = new AuthService();
-    }
-    return AuthService.instance;
-  }
-
-  // Get token from localStorage
-  getToken(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.TOKEN);
-  }
-
-  // Set token in localStorage
-  setToken(token: string): void {
-    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
-  }
-
-  // Remove token from localStorage
-  removeToken(): void {
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-  }
-
-  // Verify token with backend
-  async verifyToken(): Promise<{ isValid: boolean; user?: User }> {
-    const token = this.getToken();
-
-    if (!token) {
-      return { isValid: false };
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.VERIFY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return { isValid: true, user: data.user };
-      } else {
-        this.removeToken();
-        return { isValid: false };
-      }
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      return { isValid: false };
-    }
-  }
-
-  // Check if user has required role
-  hasRole(user: User | null, requiredRoles: string[]): boolean {
-    if (!user || !requiredRoles.length) {
-      return true;
-    }
-    return requiredRoles.includes(user.role);
-  }
-
-  // Check if user has required permissions
-  hasPermissions(user: User | null, requiredPermissions: string[]): boolean {
-    if (!user || !requiredPermissions.length) {
-      return true;
-    }
-    return requiredPermissions.every(permission => 
-      user.permissions.includes(permission)
-    );
-  }
-
-  // Logout user
-  async logout(): Promise<void> {
-    const token = this.getToken();
-
-    if (token) {
-      try {
-        await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      } catch (error) {
-        console.error('Logout API call failed:', error);
-      }
-    }
-
-    this.removeToken();
-  }
+// Auth provider props
+interface AuthProviderProps {
+  children: React.ReactNode;
 }
 
-// Custom hook for authentication
-export const useAuth = () => {
-  const [authState, setAuthState] = useState<AuthState>({
-    isAuthenticated: false,
-    isLoading: true,
-    user: null,
-    token: null,
-  });
-
-  const { showError } = useNotification();
-  const authService = AuthService.getInstance();
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const { isValid, user } = await authService.verifyToken();
-        const token = authService.getToken();
-
-        setAuthState({
-          isAuthenticated: isValid,
-          isLoading: false,
-          user: user || null,
-          token: token,
-        });
-      } catch (error) {
-        console.error('Auth initialization failed:', error);
-        setAuthState({
-          isAuthenticated: false,
-          isLoading: false,
-          user: null,
-          token: null,
-        });
-      }
+// Get stored auth data
+const getStoredAuthData = () => {
+  try {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    const user = localStorage.getItem(STORAGE_KEYS.USER);
+    return {
+      token,
+      user: user ? JSON.parse(user) : null,
     };
+  } catch {
+    return { token: null, user: null };
+  }
+};
 
-    initializeAuth();
+// Remove stored auth data
+const clearStoredAuthData = () => {
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.USER);
+};
+
+// Store auth data
+const storeAuthData = (token: string, refreshToken: string, user: User) => {
+  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+  localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+};
+
+// Auth provider component
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { showError, showSuccess } = useNotification();
+
+  // Initialize auth state from storage
+  useEffect(() => {
+    const { token, user: storedUser } = getStoredAuthData();
+    if (token && storedUser) {
+      setAccessToken(token);
+      setUser(storedUser);
+    }
+    setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  // Login function
+  const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        authService.setToken(data.token);
+      const data = await response.json();
 
-        setAuthState({
-          isAuthenticated: true,
-          isLoading: false,
-          user: data.user,
-          token: data.token,
-        });
-
+      if (response.ok && data.success) {
+        const { user, accessToken, refreshToken } = data.data;
+        setUser(user);
+        setAccessToken(accessToken);
+        storeAuthData(accessToken, refreshToken, user);
+        showSuccess('Login Successful', `Welcome back, ${user.firstName}!`);
         return true;
       } else {
-        const errorData = await response.json();
-        showError('Login Failed', errorData.message || 'Invalid credentials');
+        showError('Login Failed', data.message || 'Invalid credentials');
         return false;
       }
     } catch (error) {
-      console.error('Login failed:', error);
-      showError('Login Failed', 'Network error. Please try again.');
+      showError('Login Error', 'Unable to connect to server');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      if (accessToken) {
+        await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setAccessToken(null);
+      clearStoredAuthData();
+      showSuccess('Logged Out', 'You have been successfully logged out');
+    }
+  };
+
+  // Refresh token function
+  const refreshToken = async (): Promise<boolean> => {
+    try {
+      const storedRefreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      if (!storedRefreshToken) {
+        return false;
+      }
+
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const { user, accessToken, refreshToken: newRefreshToken } = data.data;
+        setUser(user);
+        setAccessToken(accessToken);
+        storeAuthData(accessToken, newRefreshToken, user);
+        return true;
+      } else {
+        logout();
+        return false;
+      }
+    } catch (error) {
+      logout();
       return false;
     }
   };
 
-  const logout = async (): Promise<void> => {
-    await authService.logout();
-    setAuthState({
-      isAuthenticated: false,
-      isLoading: false,
-      user: null,
-      token: null,
-    });
+  // Check if user has required role(s)
+  const hasRole = (roles: string | string[]): boolean => {
+    if (!user) return false;
+    const roleArray = Array.isArray(roles) ? roles : [roles];
+    return roleArray.includes(user.role);
   };
 
-  return {
-    ...authState,
+  // Auto-refresh token before expiry
+  useEffect(() => {
+    if (accessToken) {
+      const interval = setInterval(() => {
+        refreshToken();
+      }, 15 * 60 * 1000); // Refresh every 15 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, [accessToken]);
+
+  const contextValue: AuthContextType = {
+    user,
+    accessToken,
+    isAuthenticated: !!accessToken && !!user,
+    isLoading,
     login,
     logout,
+    refreshToken,
+    hasRole,
   };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Loading component
-const LoadingSpinner: React.FC = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-  </div>
-);
+// Hook to use auth context
+export const useAuth = (): AuthContextType => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-// Unauthorized component
-const UnauthorizedMessage: React.FC<{ message?: string }> = ({ message }) => (
-  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-    <div className="text-center p-8">
-      <div className="text-6xl text-red-500 mb-4">🚫</div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-      <p className="text-gray-600 mb-4">
-        {message || "You don't have permission to access this page."}
-      </p>
-      <button
-        onClick={() => window.history.back()}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-      >
-        Go Back
-      </button>
-    </div>
-  </div>
-);
-
-// Main ProtectedRoute component
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  requiredRoles = [],
-  requiredPermissions = [],
-  fallbackPath = ROUTES.LOGIN,
-  showUnauthorizedMessage = true,
+// Protected route component
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredRoles = [] 
 }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, hasRole } = useAuth();
   const location = useLocation();
-  const authService = AuthService.getInstance();
 
   // Show loading spinner while checking authentication
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px'
+      }}>
+        Loading...
+      </div>
+    );
   }
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to={fallbackPath} state={{ from: location }} replace />;
+    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
   }
 
   // Check role-based access
-  if (requiredRoles.length > 0 && !authService.hasRole(user, requiredRoles)) {
-    if (showUnauthorizedMessage) {
-      return (
-        <UnauthorizedMessage message="Your account role doesn't have access to this page." />
-      );
-    }
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+  if (requiredRoles.length > 0 && !hasRole(requiredRoles)) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        textAlign: 'center',
+        padding: '20px'
+      }}>
+        <h2>Access Denied</h2>
+        <p>You do not have permission to access this page.</p>
+        <p>Required roles: {requiredRoles.join(', ')}</p>
+        <p>Your role: {user?.role}</p>
+      </div>
+    );
   }
 
-  // Check permission-based access
-  if (requiredPermissions.length > 0 && !authService.hasPermissions(user, requiredPermissions)) {
-    if (showUnauthorizedMessage) {
-      return (
-        <UnauthorizedMessage message="You don't have the required permissions to access this page." />
-      );
-    }
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
-  }
-
-  // User is authenticated and authorized
   return <>{children}</>;
 };
-
-// HOC version of ProtectedRoute
-export const withProtection = (
-  Component: React.ComponentType<any>,
-  options: Omit<ProtectedRouteProps, 'children'> = {}
-) => {
-  return (props: any) => (
-    <ProtectedRoute {...options}>
-      <Component {...props} />
-    </ProtectedRoute>
-  );
-};
-
-// Role-specific route components
-export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute requiredRoles={[USER_ROLES.ADMIN]}>
-    {children}
-  </ProtectedRoute>
-);
-
-export const UserRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute requiredRoles={[USER_ROLES.ADMIN, USER_ROLES.USER]}>
-    {children}
-  </ProtectedRoute>
-);
 
 export default ProtectedRoute;

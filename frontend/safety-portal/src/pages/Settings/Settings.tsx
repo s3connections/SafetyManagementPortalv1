@@ -175,7 +175,7 @@ const Settings: React.FC = () => {
         {/* General Settings */}
         <TabPanel value={tabValue} index={0}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, md:6}}>
               <TextField
                 fullWidth
                 label="Company Name"
@@ -186,7 +186,7 @@ const Settings: React.FC = () => {
                 }))}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, md:6}}>
               <FormControl fullWidth>
                 <InputLabel>Timezone</InputLabel>
                 <Select
@@ -202,7 +202,7 @@ const Settings: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, md:6}}>
               <FormControl fullWidth>
                 <InputLabel>Date Format</InputLabel>
                 <Select
@@ -226,7 +226,7 @@ const Settings: React.FC = () => {
             SLA Settings (Hours)
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <TextField
                 fullWidth
                 type="number"
@@ -241,7 +241,7 @@ const Settings: React.FC = () => {
                 }))}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <TextField
                 fullWidth
                 type="number"
@@ -256,7 +256,7 @@ const Settings: React.FC = () => {
                 }))}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <TextField
                 fullWidth
                 type="number"
@@ -280,7 +280,7 @@ const Settings: React.FC = () => {
             Notification Channels
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -294,7 +294,7 @@ const Settings: React.FC = () => {
                 label="Email Notifications"
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -308,7 +308,7 @@ const Settings: React.FC = () => {
                 label="SMS Notifications"
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -330,7 +330,7 @@ const Settings: React.FC = () => {
             Report Settings
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -344,7 +344,7 @@ const Settings: React.FC = () => {
                 label="Daily Reports"
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -358,7 +358,7 @@ const Settings: React.FC = () => {
                 label="Weekly Reports"
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size ={{xs: 12, md:4}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -380,7 +380,7 @@ const Settings: React.FC = () => {
             Alert Settings
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, md:6}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -394,7 +394,7 @@ const Settings: React.FC = () => {
                 label="SLA Breach Alerts"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, md:6}}>
               <FormControlLabel
                 control={
                   <Switch
@@ -417,7 +417,7 @@ const Settings: React.FC = () => {
             Manage Master Data
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -436,7 +436,7 @@ const Settings: React.FC = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -455,7 +455,7 @@ const Settings: React.FC = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -483,7 +483,7 @@ const Settings: React.FC = () => {
             Security settings require administrator privileges
           </Alert>
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <Typography variant="h6" gutterBottom>
                 Password Policy
               </Typography>

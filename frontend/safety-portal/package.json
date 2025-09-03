@@ -42,6 +42,8 @@
     "format": "prettier --write 'src/**/*.{ts,tsx,json,css,md}'",
     "type-check": "tsc --noEmit"
   },
+
+  
   "eslintConfig": {
     "extends": [
       "react-app",

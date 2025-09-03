@@ -8,8 +8,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import theme from './theme/theme';
 
 // Context Providers
-import { AuthProvider } from './constants/AuthContext';
-import { NotificationProvider } from './constants/NotificationContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Components
 import Layout from './components/Layout/Layout';

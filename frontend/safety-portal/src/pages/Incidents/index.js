@@ -19,7 +19,7 @@ export default function Incidents() {
   return (
     <Grid container spacing={2}>
       {list.map((i) => (
-        <Grid item xs={12} md={6} key={i.id}>
+        <Grid size ={{xs: 12, md:6}} key={i.id}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6">{i.title}</Typography>

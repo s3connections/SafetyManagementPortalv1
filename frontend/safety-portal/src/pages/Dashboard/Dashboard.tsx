@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
       {/* KPI Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {kpiCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -186,7 +186,7 @@ const Dashboard: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Incident Distribution Chart */}
-        <Grid item xs={12} md={6}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
         </Grid>
 
         {/* Monthly Trend Chart */}
-        <Grid item xs={12} md={6}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -235,7 +235,7 @@ const Dashboard: React.FC = () => {
         </Grid>
 
         {/* Recent Activities */}
-        <Grid item xs={12}>
+        <Grid size ={{xs:12}}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>

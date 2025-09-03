@@ -250,9 +250,9 @@ export default function AuditQAdmin() {
         <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
           <Grid container spacing={3}>
             {/* Statistics Cards */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -264,7 +264,7 @@ export default function AuditQAdmin() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -276,7 +276,7 @@ export default function AuditQAdmin() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -288,7 +288,7 @@ export default function AuditQAdmin() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -304,7 +304,7 @@ export default function AuditQAdmin() {
             </Grid>
 
             {/* Questions by Category */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               {filterCategory === 'All' ? (
                 // Show grouped by category
                 <Box>

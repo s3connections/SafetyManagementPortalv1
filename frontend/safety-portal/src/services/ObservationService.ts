@@ -39,7 +39,7 @@ class ObservationService {
         formData.append('observationImage', imageFile);
       }
 
-      const response = await httpClient.post(API_ENDPOINTS.OBSERVATIONS, formData, {
+      const response = await httpClient.post(API_ENDPOINTS.OBSERVATIONS.CREATE, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -53,7 +53,7 @@ class ObservationService {
   async getObservations(page = 1, limit = 10, filters?: any): Promise<PaginatedResponse<Observation>> {
     try {
       const params = { page, limit, ...filters };
-      const response = await httpClient.get(API_ENDPOINTS.OBSERVATIONS, { params });
+      const response = await httpClient.get(API_ENDPOINTS.OBSERVATIONS.LIST, { params });
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch observations');
@@ -100,8 +100,10 @@ class ObservationService {
   async closeObservation(id: number, resolutionRemarks: string, resolutionImage?: File): Promise<ApiResponse<Observation>> {
     try {
       return await this.updateObservation(id, {
-        status: ObservationStatus.CLOSED,
-        stage: ObservationStage.CLOSED,
+        status: 'Closed' as ObservationStatus,
+        stage: 'Closed' as ObservationStage,
+
+
         resolutionRemarks
       }, resolutionImage);
     } catch (error: any) {

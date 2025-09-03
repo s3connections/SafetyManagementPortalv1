@@ -155,7 +155,7 @@ export default function Dashboard() {
 
       <Grid container spacing={3}>
         {/* KPI Cards */}
-        <Grid item xs={12} md={2}>
+        <Grid size ={{xs: 12, md:2}}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -174,7 +174,7 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={2}>
+        <Grid size ={{xs: 12, md:2}}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -193,7 +193,7 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={2}>
+        <Grid size ={{xs: 12, md:2}}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -212,7 +212,7 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={2}>
+        <Grid size ={{xs: 12, md:2}}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -231,7 +231,7 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={2}>
+        <Grid size ={{xs: 12, md:2}}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -247,7 +247,7 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={2}>
+        <Grid size ={{xs: 12, md:2}}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -267,7 +267,7 @@ export default function Dashboard() {
         </Grid>
 
         {/* Recent Incidents */}
-        <Grid item xs={12} md={6}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card sx={{ height: 400 }}>
             <CardHeader title="Recent Incidents" />
             <CardContent>
@@ -316,7 +316,7 @@ export default function Dashboard() {
         </Grid>
 
         {/* Pending Tasks */}
-        <Grid item xs={12} md={6}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card sx={{ height: 400 }}>
             <CardHeader title="Pending Tasks" />
             <CardContent>
@@ -356,13 +356,13 @@ export default function Dashboard() {
         </Grid>
 
         {/* System Alerts */}
-        <Grid item xs={12}>
+        <Grid size ={{xs:12}}>
           <Card>
             <CardHeader title="System Alerts & Notifications" />
             <CardContent>
               <Grid container spacing={2}>
                 {data.alerts.map((alert) => (
-                  <Grid item xs={12} md={4} key={alert.id}>
+                  <Grid size ={{xs: 12, md:4}} key={alert.id}>
                     <Alert 
                       severity={alert.type}
                       icon={getAlertIcon(alert.type)}
@@ -382,7 +382,7 @@ export default function Dashboard() {
         </Grid>
 
         {/* Quick Actions */}
-        <Grid item xs={12}>
+        <Grid size ={{xs:12}}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Quick Actions

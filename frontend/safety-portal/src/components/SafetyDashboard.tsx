@@ -232,7 +232,7 @@ const SafetyDashboard: React.FC = () => {
         <>
           {/* Key Metrics Cards */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ height: '100%', background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -255,7 +255,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ height: '100%', background: 'linear-gradient(45deg, #FF6B6B 30%, #FFE66D 90%)' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -278,7 +278,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ height: '100%', background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -301,7 +301,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ height: '100%', background: 'linear-gradient(45deg, #9C27B0 30%, #E1BEE7 90%)' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -328,7 +328,7 @@ const SafetyDashboard: React.FC = () => {
           {/* Charts Row */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {/* Observation Trend */}
-            <Grid item xs={12} lg={8}>
+            <Grid size ={{xs: 12, lg: 8}}>
               <Paper sx={{ p: 3, height: 400 }}>
                 <Typography variant="h6" gutterBottom>
                   Observation Trend (Last 30 Days)
@@ -354,7 +354,7 @@ const SafetyDashboard: React.FC = () => {
             </Grid>
 
             {/* Priority Distribution */}
-            <Grid item xs={12} lg={4}>
+            <Grid size ={{xs: 12, lg: 4}}>
               <Paper sx={{ p: 3, height: 400 }}>
                 <Typography variant="h6" gutterBottom>
                   Observations by Priority
@@ -366,7 +366,9 @@ const SafetyDashboard: React.FC = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }: { name: string; percent?: number }) => 
+  `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
+}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -385,7 +387,7 @@ const SafetyDashboard: React.FC = () => {
           {/* Bottom Row */}
           <Grid container spacing={3}>
             {/* Observations by Type */}
-            <Grid item xs={12} lg={6}>
+            <Grid size ={{xs: 12, lg: 6}}>
               <Paper sx={{ p: 3, height: 400 }}>
                 <Typography variant="h6" gutterBottom>
                   Observations by Type
@@ -403,7 +405,7 @@ const SafetyDashboard: React.FC = () => {
             </Grid>
 
             {/* Recent Activities */}
-            <Grid item xs={12} lg={6}>
+            <Grid size ={{xs: 12, lg: 6}}>
               <Paper sx={{ p: 3, height: 400 }}>
                 <Typography variant="h6" gutterBottom>
                   Recent Activities

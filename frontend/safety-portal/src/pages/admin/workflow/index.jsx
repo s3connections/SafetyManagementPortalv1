@@ -196,9 +196,9 @@ export default function WorkflowAdmin() {
         <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
           <Grid container spacing={3}>
             {/* Workflow Statistics */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -210,7 +210,7 @@ export default function WorkflowAdmin() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -222,7 +222,7 @@ export default function WorkflowAdmin() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -234,7 +234,7 @@ export default function WorkflowAdmin() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size ={{xs: 12, md:3}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -250,7 +250,7 @@ export default function WorkflowAdmin() {
             </Grid>
 
             {/* Workflow Table */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead>

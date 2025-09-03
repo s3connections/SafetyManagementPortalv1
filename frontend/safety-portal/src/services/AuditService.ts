@@ -22,7 +22,7 @@ export interface UpdateAuditDto {
 class AuditService {
   async createAudit(auditData: CreateAuditDto): Promise<ApiResponse<Audit>> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.AUDITS, auditData);
+      const response = await httpClient.post(API_ENDPOINTS.AUDITS.CREATE, auditData);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to create audit');
@@ -32,7 +32,7 @@ class AuditService {
   async getAudits(page = 1, limit = 10, filters?: any): Promise<PaginatedResponse<Audit>> {
     try {
       const params = { page, limit, ...filters };
-      const response = await httpClient.get(API_ENDPOINTS.AUDITS, { params });
+      const response = await httpClient.get(API_ENDPOINTS.AUDITS.LIST, { params });
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch audits');

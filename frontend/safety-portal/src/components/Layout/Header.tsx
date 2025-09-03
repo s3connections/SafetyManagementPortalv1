@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { APP_NAME, ROUTES, THEME } from './constants';
-import { useAuth, User } from './ProtectedRoute';
-import { useNotification } from './NotificationContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import { User } from '../types/index';
 
 // Header props interface
 interface HeaderProps {

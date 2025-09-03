@@ -20,9 +20,9 @@ const ConnectionTest: React.FC = () => {
       console.log('🔄 Testing Audit API connection...');
       const response = await AuditService.getAudits(1, 5);
       
-      if (response.success) {
+      if (response.data) {
         setAudits(response.data);
-        setSuccess(`✅ Audit API connected! Found ${response.totalCount} audits`);
+        setSuccess(`✅ Audit API connected! Found ${response.data} audits`);
         console.log('✅ Audit API Response:', response);
       } else {
         setError('❌ Audit API returned unsuccessful response');
@@ -44,9 +44,9 @@ const ConnectionTest: React.FC = () => {
       console.log('🔄 Testing Observation API connection...');
       const response = await ObservationService.getObservations(1, 5);
       
-      if (response.success) {
+      if (response.data) {
         setObservations(response.data);
-        setSuccess(`✅ Observation API connected! Found ${response.totalCount} observations`);
+        setSuccess(`✅ Observation API connected! Found ${response.data} observations`);
         console.log('✅ Observation API Response:', response);
       } else {
         setError('❌ Observation API returned unsuccessful response');

@@ -1,334 +1,162 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
-  Chip,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Card, CardContent, Typography, Button, Grid, TextField, FormControl,
+  InputLabel, Select, MenuItem, Dialog, DialogTitle, DialogContent,
+  DialogActions, Box, Checkbox, FormControlLabel
 } from '@mui/material';
-import {
-  Add,
-  Edit,
-  Delete,
-  Visibility,
-  Search,
-  FilterList
-} from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
+import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 
-interface IncidentObservation {
-  id: string;
-  observationNumber: string;
-  reportedBy: string;
-  incidentDate: string;
-  location: string;
-  incidentType: string;
-  severity: string;
-  status: string;
-  priority: string;
-  description: string;
-  assignedTo?: string;
+interface IncidentFormProps {
+  incidentId?: string;
+  open: boolean;
+  onClose: () => void;
+  onSave: (incidentData: IncidentData) => void;
 }
 
-const IncidentList: React.FC = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  
-  const [incidents, setIncidents] = useState<IncidentObservation[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-  
-  // Filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  
-  // Dialog state
-  const [deleteDialog, setDeleteDialog] = useState<{open: boolean, id: string | null}>({
-    open: false,
-    id: null
+interface IncidentData {
+  title: string;
+  description: string;
+  incidentType: string;
+  severity: string;
+  incidentDate: string;
+  location: string;
+  reportedBy: string;
+  departmentId: string;
+  witnesses: string;
+  injuryDetails?: string;
+  immediateActions: string;
+}
+
+const IncidentForm: React.FC<IncidentFormProps> = ({ incidentId, open, onClose, onSave }) => {
+  const [formData, setFormData] = useState<IncidentData>({
+    title: '', description: '', incidentType: '', severity: '',
+    incidentDate: '', location: '', reportedBy: '', departmentId: '',
+    witnesses: '', immediateActions: ''
   });
 
-  useEffect(() => {
-    fetchIncidents();
-  }, [page, rowsPerPage, searchTerm, statusFilter, priorityFilter, typeFilter]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const fetchIncidents = async () => {
-    setLoading(true);
-    try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        pageSize: rowsPerPage.toString(),
-        search: searchTerm,
-        status: statusFilter,
-        priority: priorityFilter,
-        type: typeFilter
-      });
-
-      const response = await fetch(`/api/incidentobservation?${queryParams}`);
-      if (response.ok) {
-        const data = await response.json();
-        setIncidents(data.items);
-        setTotalCount(data.totalCount);
-      }
-    } catch (error) {
-      console.error('Error fetching incidents:', error);
-    } finally {
-      setLoading(false);
+  const handleInputChange = (field: keyof IncidentData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (!formData.incidentType) newErrors.incidentType = 'Incident type is required';
+    if (!formData.severity) newErrors.severity = 'Severity is required';
+    if (!formData.incidentDate) newErrors.incidentDate = 'Incident date is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/incidentobservation/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        fetchIncidents();
-        setDeleteDialog({ open: false, id: null });
-      }
-    } catch (error) {
-      console.error('Error deleting incident:', error);
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'high': return 'error';
-      case 'medium': return 'warning';
-      case 'low': return 'success';
-      default: return 'default';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'closed': return 'success';
-      case 'open': return 'warning';
-      case 'in-progress': return 'info';
-      default: return 'default';
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSave(formData);
     }
   };
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Incident Management</Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate('new')}
-        >
-          New Incident
-        </Button>
-      </Box>
-
-      {/* Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={3}>
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+      <DialogTitle>{incidentId ? 'Edit Incident' : 'Report New Incident'}</DialogTitle>
+      <DialogContent>
+        <Box sx={{ mt: 2 }}>
+          <Grid container spacing={3}>
+            <Grid size ={{xs:12}}>
               <TextField
-                fullWidth
-                label="Search"
-                variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  endAdornment: <Search />
-                }}
+                fullWidth label="Incident Title" required
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                error={!!errors.title} helperText={errors.title}
               />
             </Grid>
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
+            <Grid size ={{xs: 12, md:6}}>
+              <FormControl fullWidth error={!!errors.incidentType}>
+                <InputLabel>Incident Type</InputLabel>
                 <Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  value={formData.incidentType} label="Incident Type"
+                  onChange={(e) => handleInputChange('incidentType', e.target.value)}
                 >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="Open">Open</MenuItem>
-                  <MenuItem value="In-Progress">In Progress</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                  <MenuItem value="Re-opened">Re-opened</MenuItem>
+                  <MenuItem value="Injury">Personal Injury</MenuItem>
+                  <MenuItem value="Near Miss">Near Miss</MenuItem>
+                  <MenuItem value="Property Damage">Property Damage</MenuItem>
+                  <MenuItem value="Environmental">Environmental</MenuItem>
+                  <MenuItem value="Security">Security Incident</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
+            <Grid size ={{xs: 12, md:6}}>
+              <FormControl fullWidth error={!!errors.severity}>
+                <InputLabel>Severity</InputLabel>
                 <Select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  value={formData.severity} label="Severity"
+                  onChange={(e) => handleInputChange('severity', e.target.value)}
                 >
-                  <MenuItem value="">All</MenuItem>
                   <MenuItem value="High">High</MenuItem>
                   <MenuItem value="Medium">Medium</MenuItem>
                   <MenuItem value="Low">Low</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth>
-                <InputLabel>Type</InputLabel>
-                <Select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="Unsafe Act">Unsafe Act</MenuItem>
-                  <MenuItem value="Unsafe Condition">Unsafe Condition</MenuItem>
-                  <MenuItem value="Near Miss">Near Miss</MenuItem>
-                  <MenuItem value="Good Practice">Good Practice</MenuItem>
-                </Select>
-              </FormControl>
+            <Grid size ={{xs: 12, md:6}}>
+              <TextField
+                fullWidth label="Incident Date & Time" type="datetime-local" required
+                value={formData.incidentDate}
+                onChange={(e) => handleInputChange('incidentDate', e.target.value)}
+                error={!!errors.incidentDate} helperText={errors.incidentDate}
+                InputLabelProps={{ shrink: true }}
+              />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('');
-                  setPriorityFilter('');
-                  setTypeFilter('');
-                }}
-              >
-                Clear Filters
-              </Button>
+            <Grid size ={{xs: 12, md:6}}>
+              <TextField
+                fullWidth label="Location"
+                value={formData.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+              />
+            </Grid>
+            <Grid size ={{xs:12}}>
+              <TextField
+                fullWidth label="Description" multiline rows={4} required
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+              />
+            </Grid>
+            <Grid size ={{xs: 12, md:6}}>
+              <TextField
+                fullWidth label="Reported By"
+                value={formData.reportedBy}
+                onChange={(e) => handleInputChange('reportedBy', e.target.value)}
+              />
+            </Grid>
+            <Grid size ={{xs: 12, md:6}}>
+              <TextField
+                fullWidth label="Witnesses"
+                value={formData.witnesses}
+                onChange={(e) => handleInputChange('witnesses', e.target.value)}
+              />
+            </Grid>
+            <Grid size ={{xs:12}}>
+              <TextField
+                fullWidth label="Immediate Actions Taken" multiline rows={3}
+                value={formData.immediateActions}
+                onChange={(e) => handleInputChange('immediateActions', e.target.value)}
+              />
             </Grid>
           </Grid>
-        </CardContent>
-      </Card>
-
-      {/* Incidents Table */}
-      <Card>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Reported By</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Assigned To</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {incidents.map((incident) => (
-                <TableRow key={incident.id}>
-                  <TableCell>{incident.observationNumber}</TableCell>
-                  <TableCell>
-                    <Chip label={incident.incidentType} size="small" variant="outlined" />
-                  </TableCell>
-                  <TableCell>{incident.location}</TableCell>
-                  <TableCell>{incident.reportedBy}</TableCell>
-                  <TableCell>{new Date(incident.incidentDate).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={incident.priority} 
-                      color={getPriorityColor(incident.priority)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={incident.status} 
-                      color={getStatusColor(incident.status)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{incident.assignedTo || 'Unassigned'}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => navigate(`${incident.id}`)}>
-                      <Visibility />
-                    </IconButton>
-                    <IconButton onClick={() => navigate(`edit/${incident.id}`)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton 
-                      onClick={() => setDeleteDialog({open: true, id: incident.id})}
-                      color="error"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
-          component="div"
-          count={totalCount}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialog.open}
-        onClose={() => setDeleteDialog({open: false, id: null})}
-      >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete this incident observation?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialog({open: false, id: null})}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => deleteDialog.id && handleDelete(deleteDialog.id)}
-            color="error"
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ p: 3 }}>
+        <Button onClick={onClose} startIcon={<CancelIcon />}>Cancel</Button>
+        <Button onClick={handleSubmit} variant="contained" startIcon={<SaveIcon />}>
+          {incidentId ? 'Update' : 'Report'} Incident
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
-export default IncidentList;
+export default IncidentForm;

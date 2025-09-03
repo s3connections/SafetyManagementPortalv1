@@ -21,7 +21,7 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { useAuth } from '../../constants/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();

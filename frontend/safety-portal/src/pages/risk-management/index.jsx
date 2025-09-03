@@ -242,9 +242,9 @@ export default function RiskManagement() {
         <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
           <Grid container spacing={3}>
             {/* Risk Statistics */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -256,7 +256,7 @@ export default function RiskManagement() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -268,7 +268,7 @@ export default function RiskManagement() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -280,7 +280,7 @@ export default function RiskManagement() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -292,7 +292,7 @@ export default function RiskManagement() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -308,7 +308,7 @@ export default function RiskManagement() {
             </Grid>
 
             {/* Risk Table */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead>
@@ -419,7 +419,7 @@ export default function RiskManagement() {
             />
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <Typography component="legend">Probability (1-5)</Typography>
                 <Rating
                   value={newRisk.probability}
@@ -427,7 +427,7 @@ export default function RiskManagement() {
                   max={5}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <Typography component="legend">Impact (1-5)</Typography>
                 <Rating
                   value={newRisk.impact}
@@ -438,7 +438,7 @@ export default function RiskManagement() {
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <TextField
                   label="Risk Owner"
                   value={newRisk.owner}
@@ -446,7 +446,7 @@ export default function RiskManagement() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <TextField
                   label="Due Date"
                   type="date"

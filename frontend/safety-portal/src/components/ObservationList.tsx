@@ -211,7 +211,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
 
       {/* Statistics Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -223,7 +223,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -235,7 +235,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -247,7 +247,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -405,7 +405,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
         <DialogTitle>Filter Observations</DialogTitle>
         <DialogContent>
           <Grid container spacing={3} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid size ={{xs: 12, sm:6}}>
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -422,7 +422,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size ={{xs: 12, sm:6}}>
               <FormControl fullWidth>
                 <InputLabel>Priority</InputLabel>
                 <Select
@@ -437,7 +437,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size ={{xs: 12, sm:6}}>
               <FormControl fullWidth>
                 <InputLabel>Observation Type</InputLabel>
                 <Select
@@ -454,7 +454,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size ={{xs: 12, sm:6}}>
               <TextField
                 fullWidth
                 label="Plant ID"

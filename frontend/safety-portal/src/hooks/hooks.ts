@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { debounce, storage } from './utils';
-import { API_BASE_URL } from './constants';
-import { ApiResponse, PaginatedResponse, SearchParams } from './types';
+import { debounce, storage } from '../utils';
+import { API_BASE_URL } from '../constants';
+import { ApiResponse, PaginatedResponse, SearchParams } from '../types';
 
 /**
  * Hook for managing loading states
@@ -124,7 +124,7 @@ export const useLocalStorage = <T>(
  * Hook for previous value
  */
 export const usePrevious = <T>(value: T): T | undefined => {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     ref.current = value;
@@ -245,7 +245,7 @@ export const useApi = <T>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController>();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async () => {
     // Cancel previous request

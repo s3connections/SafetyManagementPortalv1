@@ -273,9 +273,9 @@ export default function IncidentReporting() {
         <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
           <Grid container spacing={3}>
             {/* Incident Statistics */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -287,7 +287,7 @@ export default function IncidentReporting() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -299,7 +299,7 @@ export default function IncidentReporting() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -311,7 +311,7 @@ export default function IncidentReporting() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -323,7 +323,7 @@ export default function IncidentReporting() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={2.4}>
+                <Grid size ={{xs: 12, md:2.4}}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -339,7 +339,7 @@ export default function IncidentReporting() {
             </Grid>
 
             {/* Incident Table */}
-            <Grid item xs={12}>
+            <Grid size ={{xs:12}}>
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead>
@@ -432,7 +432,7 @@ export default function IncidentReporting() {
             />
             
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <FormControl fullWidth required>
                   <InputLabel>Incident Type</InputLabel>
                   <Select
@@ -448,7 +448,7 @@ export default function IncidentReporting() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <FormControl fullWidth>
                   <InputLabel>Severity</InputLabel>
                   <Select
@@ -467,7 +467,7 @@ export default function IncidentReporting() {
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <TextField
                   label="Location"
                   value={newIncident.location}
@@ -475,7 +475,7 @@ export default function IncidentReporting() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size ={{xs:6}}>
                 <TextField
                   label="Reported By"
                   value={newIncident.reportedBy}
@@ -532,18 +532,18 @@ export default function IncidentReporting() {
           {currentIncident && (
             <Box sx={{ pt: 1 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid size ={{xs:12}}>
                   <Typography variant="h6" gutterBottom>
                     {currentIncident.title}
                   </Typography>
                 </Grid>
                 
-                <Grid item xs={6}>
+                <Grid size ={{xs:6}}>
                   <Typography variant="body2" color="textSecondary">Type:</Typography>
                   <Typography variant="body1">{currentIncident.type}</Typography>
                 </Grid>
                 
-                <Grid item xs={6}>
+                <Grid size ={{xs:6}}>
                   <Typography variant="body2" color="textSecondary">Severity:</Typography>
                   <Chip 
                     label={currentIncident.severity}
@@ -552,7 +552,7 @@ export default function IncidentReporting() {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size ={{xs:12}}>
                   <Typography variant="body2" color="textSecondary" gutterBottom>
                     Investigation Progress:
                   </Typography>
@@ -565,7 +565,7 @@ export default function IncidentReporting() {
                   </Stepper>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size ={{xs:12}}>
                   <Typography variant="body2" color="textSecondary">Description:</Typography>
                   <Typography variant="body1">{currentIncident.description}</Typography>
                 </Grid>
