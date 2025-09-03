@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Safety Management Project\\Backend\\Backend.csproj": {}
+    "D:\\Safety Management Project\\backend\\Backend.csproj": {}
   },
   "projects": {
-    "D:\\Safety Management Project\\Backend\\Backend.csproj": {
+    "D:\\Safety Management Project\\backend\\Backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Safety Management Project\\Backend\\Backend.csproj",
+        "projectUniqueName": "D:\\Safety Management Project\\backend\\Backend.csproj",
         "projectName": "Backend",
-        "projectPath": "D:\\Safety Management Project\\Backend\\Backend.csproj",
+        "projectPath": "D:\\Safety Management Project\\backend\\Backend.csproj",
         "packagesPath": "C:\\Users\\ADITYA\\.nuget\\packages\\",
-        "outputPath": "D:\\Safety Management Project\\Backend\\obj\\",
+        "outputPath": "D:\\Safety Management Project\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\ADITYA\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -45,11 +45,27 @@
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[8.0.19, )"
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "target": "Package",
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "target": "Package",
+              "version": "[8.0.6, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[6.6.2, )"
+              "version": "[6.4.0, )"
             }
           },
           "imports": [
