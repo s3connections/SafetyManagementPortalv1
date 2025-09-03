@@ -181,9 +181,9 @@ export const useMediaQuery = (query: string): boolean => {
 /**
  * Hook for click outside detection
  */
-export const useClickOutside = <T extends HTMLElement>(
+export const useClickOutside = <T extends Element>(
   callback: () => void
-): React.RefObject<T> => {
+): RefObject<T> => {
   const ref = useRef<T>(null);
 
   useEffect(() => {
@@ -490,9 +490,8 @@ export const useForm = <T extends Record<string, any>>(
  * Hook for intersection observer (for infinite scrolling, lazy loading)
  */
 export const useIntersectionObserver = (
-  options: IntersectionObserverInit = {}
-): [React.RefObject<Element>, boolean] => {
-  const [isIntersecting, setIsIntersecting] = useState(false);
+  options?: IntersectionObserverInit
+): [RefObject<Element>, boolean] => {
   const targetRef = useRef<Element>(null);
 
   useEffect(() => {

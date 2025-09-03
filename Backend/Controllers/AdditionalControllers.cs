@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Backend.DTOs.Common;
+using Backend.Services.Interfaces;
 
 namespace Backend.Controllers
 {

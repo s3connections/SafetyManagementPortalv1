@@ -1,18 +1,20 @@
-using Backend.DTOs.Incident;
+using Backend.DTOs.Common;
+using Backend.DTOs.Observation;
 using Backend.Models;
 
 namespace Backend.Services.Interfaces
 {
-    public interface IObservationService : IBaseService<IncidentObservation, IncidentObservationDto, CreateIncidentObservationDto, UpdateIncidentObservationDto>
+    public interface IObservationService : IBaseService<Observation, ObservationDto, CreateObservationDto, UpdateObservationDto>
     {
-        Task<ApiResponse<IEnumerable<IncidentObservationDto>>> GetObservationsByStatusAsync(string status);
-        Task<ApiResponse<IEnumerable<IncidentObservationDto>>> GetObservationsByReporterAsync(int reporterId);
-        Task<ApiResponse<IEnumerable<IncidentObservationDto>>> GetObservationsByAssigneeAsync(int assigneeId);
-        Task<ApiResponse<IEnumerable<IncidentObservationDto>>> GetObservationsByPlantAsync(int plantId);
-        Task<ApiResponse<IEnumerable<IncidentObservationDto>>> GetObservationsByDepartmentAsync(int departmentId);
-        Task<ApiResponse<IEnumerable<IncidentObservationDto>>> GetOverdueObservationsAsync();
-        Task<ApiResponse<IncidentObservationDto>> AssignObservationAsync(int observationId, int assigneeId);
-        Task<ApiResponse<IncidentObservationDto>> UpdateStatusAsync(int observationId, string status);
-        Task<ApiResponse<object>> GetObservationStatisticsAsync();
+        // Remove duplicate method definitions
+        Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByStatusAsync(string status);
+        Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByReporterAsync(int reporterId);
+        Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByAssigneeAsync(int assigneeId);
+        Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByPlantAsync(int plantId);
+        Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByDepartmentAsync(int departmentId);
+        Task<ApiResponse<IEnumerable<ObservationDto>>> GetOverdueObservationsAsync();
+        Task<ApiResponse<ObservationDto>> AssignObservationAsync(int observationId, int assigneeId);
+        Task<ApiResponse<ObservationDto>> UpdateStatusAsync(int observationId, string status);
+        Task<ApiResponse<ObservationStatisticsDto>> GetObservationStatisticsAsync();
     }
 }

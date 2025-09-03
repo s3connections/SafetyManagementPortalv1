@@ -78,8 +78,9 @@ const ConnectionTest: React.FC = () => {
       
       const response = await ObservationService.createObservation(testObservation);
       
-      if (response.success) {
-        setSuccess(`✅ Observation created successfully! Ticket: ${response.data.ticketNumber}`);
+      if (response.success && response.data?.ticketNumber) {
+  setSuccess(`✅ Observation created successfully! Ticket: ${response.data.ticketNumber}`);
+}`);
         console.log('✅ Created Observation:', response.data);
         // Refresh the observation list
         await testObservationConnection();
@@ -111,8 +112,9 @@ const ConnectionTest: React.FC = () => {
       
       const response = await AuditService.createAudit(testAudit);
       
-      if (response.success) {
-        setSuccess(`✅ Audit created successfully! Number: ${response.data.auditNumber}`);
+      if (response.success && response.data?.auditNumber) {
+  setSuccess(`✅ Audit created successfully! Number: ${response.data.auditNumber}`);
+}
         console.log('✅ Created Audit:', response.data);
         // Refresh the audit list
         await testAuditConnection();

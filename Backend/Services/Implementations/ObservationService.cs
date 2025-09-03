@@ -1,385 +1,194 @@
-using Backend.Data;
-using Backend.Models;
-using Backend.DTOs;
-using Backend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Backend.Data;
+using Backend.DTOs.Common;
+using Backend.DTOs.Observation;
+using Backend.Models;
+using Backend.Services.Interfaces;
 
 namespace Backend.Services.Implementations
 {
-    public class ObservationService : IObservationService
+    public class ObservationService : BaseService<Observation, ObservationDto, CreateObservationDto, UpdateObservationDto>, IObservationService
     {
-        private readonly SafetyDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly ILogger<ObservationService> _logger;
-
-        public ObservationService(SafetyDbContext context, IMapper mapper, ILogger<ObservationService> logger)
+        public ObservationService(ApplicationDbContext context, IMapper mapper, ILogger<ObservationService> logger)
+            : base(context, mapper, logger)
         {
-            _context = context;
-            _mapper = mapper;
-            _logger = logger;
         }
 
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetAllObservationsAsync()
+        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByStatusAsync(string status)
+        {
+            try
+            {
+                if (!Enum.TryParse<ObservationStatus>(status, true, out var statusEnum))
+                {
+                    return ApiResponse<IEnumerable<ObservationDto>>.Failure("Invalid status value");
+                }
+
+                var observations = await _context.Observations
+                    .Where(o => o.Status == statusEnum)
+                    .Include(o => o.Reporter)
+                    .Include(o => o.Assignee)
+                    .Include(o => o.Plant)
+                    .Include(o => o.Department)
+                    .Include(o => o.HazardCategory)
+                    .Include(o => o.HazardType)
+                    .ToListAsync();
+
+                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
+                return ApiResponse<IEnumerable<ObservationDto>>.Success(observationDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting observations by status {Status}", status);
+                return ApiResponse<IEnumerable<ObservationDto>>.Failure("An error occurred while retrieving observations");
+            }
+        }
+
+        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByReporterAsync(int reporterId)
         {
             try
             {
                 var observations = await _context.Observations
+                    .Where(o => o.ReportedBy == reporterId)
+                    .Include(o => o.Reporter)
+                    .Include(o => o.Assignee)
                     .Include(o => o.Plant)
                     .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
+                    .Include(o => o.HazardCategory)
                     .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .OrderByDescending(o => o.CreatedAt)
                     .ToListAsync();
 
                 var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, "Observations retrieved successfully");
+                return ApiResponse<IEnumerable<ObservationDto>>.Success(observationDtos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all observations");
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations");
+                _logger.LogError(ex, "Error getting observations by reporter {ReporterId}", reporterId);
+                return ApiResponse<IEnumerable<ObservationDto>>.Failure("An error occurred while retrieving observations");
             }
         }
 
-        public async Task<ApiResponse<ObservationDto>> GetObservationByIdAsync(int id)
+        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByAssigneeAsync(int assigneeId)
         {
             try
             {
-                var observation = await _context.Observations
+                var observations = await _context.Observations
+                    .Where(o => o.AssignedTo == assigneeId)
+                    .Include(o => o.Reporter)
+                    .Include(o => o.Assignee)
                     .Include(o => o.Plant)
                     .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
+                    .Include(o => o.HazardCategory)
                     .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .FirstOrDefaultAsync(o => o.Id == id);
+                    .ToListAsync();
 
-                if (observation == null)
-                {
-                    return ApiResponse<ObservationDto>.FailureResult($"Observation with ID {id} not found");
-                }
-
-                var observationDto = _mapper.Map<ObservationDto>(observation);
-                return ApiResponse<ObservationDto>.SuccessResult(observationDto, "Observation retrieved successfully");
+                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
+                return ApiResponse<IEnumerable<ObservationDto>>.Success(observationDtos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving observation {ObservationId}", id);
-                return ApiResponse<ObservationDto>.FailureResult(ex, "Error retrieving observation");
+                _logger.LogError(ex, "Error getting observations by assignee {AssigneeId}", assigneeId);
+                return ApiResponse<IEnumerable<ObservationDto>>.Failure("An error occurred while retrieving observations");
             }
         }
 
-        public async Task<ApiResponse<ObservationDto>> CreateObservationAsync(CreateObservationDto createObservationDto)
+        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetOverdueObservationsAsync()
         {
             try
             {
-                var observation = _mapper.Map<Observation>(createObservationDto);
-                observation.CreatedAt = DateTime.UtcNow;
-                observation.Status = ObservationStatus.Open;
+                var now = DateTime.UtcNow;
+                var observations = await _context.Observations
+                    .Where(o => o.DueDate.HasValue && o.DueDate < now && 
+                               o.Status != ObservationStatus.Completed && 
+                               o.Status != ObservationStatus.Closed)
+                    .Include(o => o.Reporter)
+                    .Include(o => o.Assignee)
+                    .Include(o => o.Plant)
+                    .Include(o => o.Department)
+                    .Include(o => o.HazardCategory)
+                    .Include(o => o.HazardType)
+                    .ToListAsync();
 
-                _context.Observations.Add(observation);
-                await _context.SaveChangesAsync();
-
-                var createdObservation = await GetObservationByIdAsync(observation.Id);
-                return createdObservation.Success 
-                    ? ApiResponse<ObservationDto>.SuccessResult(createdObservation.Data!, "Observation created successfully")
-                    : ApiResponse<ObservationDto>.FailureResult("Error retrieving created observation");
+                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
+                return ApiResponse<IEnumerable<ObservationDto>>.Success(observationDtos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating observation");
-                return ApiResponse<ObservationDto>.FailureResult(ex, "Error creating observation");
+                _logger.LogError(ex, "Error getting overdue observations");
+                return ApiResponse<IEnumerable<ObservationDto>>.Failure("An error occurred while retrieving overdue observations");
             }
         }
 
-        public async Task<ApiResponse<ObservationDto>> UpdateObservationAsync(int id, UpdateObservationDto updateObservationDto)
+        public async Task<ApiResponse<ObservationDto>> AssignObservationAsync(int observationId, int assigneeId)
         {
             try
             {
-                var observation = await _context.Observations.FindAsync(id);
+                var observation = await _context.Observations.FindAsync(observationId);
                 if (observation == null)
                 {
-                    return ApiResponse<ObservationDto>.FailureResult($"Observation with ID {id} not found");
+                    return ApiResponse<ObservationDto>.Failure("Observation not found");
                 }
 
-                _mapper.Map(updateObservationDto, observation);
+                var assignee = await _context.Users.FindAsync(assigneeId);
+                if (assignee == null)
+                {
+                    return ApiResponse<ObservationDto>.Failure("Assignee not found");
+                }
+
+                observation.AssignedTo = assigneeId;
+                observation.Status = ObservationStatus.InProgress;
                 observation.UpdatedAt = DateTime.UtcNow;
 
-                _context.Observations.Update(observation);
                 await _context.SaveChangesAsync();
 
-                var updatedObservation = await GetObservationByIdAsync(observation.Id);
-                return updatedObservation.Success 
-                    ? ApiResponse<ObservationDto>.SuccessResult(updatedObservation.Data!, "Observation updated successfully")
-                    : ApiResponse<ObservationDto>.FailureResult("Error retrieving updated observation");
+                var observationDto = _mapper.Map<ObservationDto>(observation);
+                return ApiResponse<ObservationDto>.Success(observationDto, "Observation assigned successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating observation {ObservationId}", id);
-                return ApiResponse<ObservationDto>.FailureResult(ex, "Error updating observation");
+                _logger.LogError(ex, "Error assigning observation {ObservationId} to {AssigneeId}", observationId, assigneeId);
+                return ApiResponse<ObservationDto>.Failure("An error occurred while assigning the observation");
             }
         }
 
-        public async Task<ApiResponse<bool>> DeleteObservationAsync(int id)
+        public async Task<ApiResponse<ObservationDto>> UpdateStatusAsync(int observationId, string status)
         {
             try
             {
-                var observation = await _context.Observations.FindAsync(id);
-                if (observation == null)
+                if (!Enum.TryParse<ObservationStatus>(status, true, out var statusEnum))
                 {
-                    return ApiResponse<bool>.FailureResult($"Observation with ID {id} not found");
+                    return ApiResponse<ObservationDto>.Failure("Invalid status value");
                 }
 
-                _context.Observations.Remove(observation);
+                var observation = await _context.Observations.FindAsync(observationId);
+                if (observation == null)
+                {
+                    return ApiResponse<ObservationDto>.Failure("Observation not found");
+                }
+
+                observation.Status = statusEnum;
+                observation.UpdatedAt = DateTime.UtcNow;
+
+                if (statusEnum == ObservationStatus.Completed)
+                {
+                    observation.CompletedAt = DateTime.UtcNow;
+                }
+
                 await _context.SaveChangesAsync();
 
-                return ApiResponse<bool>.SuccessResult(true, "Observation deleted successfully");
+                var observationDto = _mapper.Map<ObservationDto>(observation);
+                return ApiResponse<ObservationDto>.Success(observationDto, "Status updated successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting observation {ObservationId}", id);
-                return ApiResponse<bool>.FailureResult(ex, "Error deleting observation");
+                _logger.LogError(ex, "Error updating status for observation {ObservationId}", observationId);
+                return ApiResponse<ObservationDto>.Failure("An error occurred while updating the status");
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByStatusAsync(ObservationStatus status)
+        protected override string GenerateNumber()
         {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.Status == status)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, $"Observations with status {status} retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by status {Status}", status);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by status");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByPriorityAsync(Priority priority)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.Priority == priority)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, $"Observations with priority {priority} retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by priority {Priority}", priority);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by priority");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByTypeAsync(ObservationType type)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.Type == type)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, $"Observations of type {type} retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by type {Type}", type);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by type");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByPlantAsync(int plantId)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.PlantId == plantId)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, $"Observations for plant {plantId} retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by plant {PlantId}", plantId);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by plant");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByDepartmentAsync(int departmentId)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.DepartmentId == departmentId)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, $"Observations for department {departmentId} retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by department {DepartmentId}", departmentId);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by department");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByUserAsync(int userId)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.ReporterId == userId || o.AssignedToId == userId)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, $"Observations for user {userId} retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by user {UserId}", userId);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by user");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> GetObservationsByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, "Observations retrieved successfully for date range");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observations by date range {StartDate} - {EndDate}", startDate, endDate);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error retrieving observations by date range");
-            }
-        }
-
-        public async Task<ApiResponse<ObservationStatisticsDto>> GetObservationStatisticsAsync()
-        {
-            try
-            {
-                var totalObservations = await _context.Observations.CountAsync();
-                var openObservations = await _context.Observations.CountAsync(o => o.Status == ObservationStatus.Open);
-                var inProgressObservations = await _context.Observations.CountAsync(o => o.Status == ObservationStatus.InProgress);
-                var closedObservations = await _context.Observations.CountAsync(o => o.Status == ObservationStatus.Closed);
-                
-                var highPriorityObservations = await _context.Observations.CountAsync(o => o.Priority == Priority.High);
-                var mediumPriorityObservations = await _context.Observations.CountAsync(o => o.Priority == Priority.Medium);
-                var lowPriorityObservations = await _context.Observations.CountAsync(o => o.Priority == Priority.Low);
-
-                var statistics = new ObservationStatisticsDto
-                {
-                    TotalObservations = totalObservations,
-                    OpenObservations = openObservations,
-                    InProgressObservations = inProgressObservations,
-                    ClosedObservations = closedObservations,
-                    HighPriorityObservations = highPriorityObservations,
-                    MediumPriorityObservations = mediumPriorityObservations,
-                    LowPriorityObservations = lowPriorityObservations
-                };
-
-                return ApiResponse<ObservationStatisticsDto>.SuccessResult(statistics, "Statistics retrieved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving observation statistics");
-                return ApiResponse<ObservationStatisticsDto>.FailureResult(ex, "Error retrieving observation statistics");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<ObservationDto>>> SearchObservationsAsync(string searchTerm)
-        {
-            try
-            {
-                var observations = await _context.Observations
-                    .Include(o => o.Plant)
-                    .Include(o => o.Department)
-                    .Include(o => o.Reporter)
-                    .Include(o => o.AssignedTo)
-                    .Include(o => o.HazardType)
-                    .ThenInclude(ht => ht.HazardCategory)
-                    .Where(o => o.Title.Contains(searchTerm) || 
-                               o.Description.Contains(searchTerm) ||
-                               o.Location.Contains(searchTerm) ||
-                               o.Plant.Name.Contains(searchTerm) ||
-                               o.Department.Name.Contains(searchTerm))
-                    .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
-
-                var observationDtos = _mapper.Map<IEnumerable<ObservationDto>>(observations);
-                return ApiResponse<IEnumerable<ObservationDto>>.SuccessResult(observationDtos, "Search completed successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error searching observations with term {SearchTerm}", searchTerm);
-                return ApiResponse<IEnumerable<ObservationDto>>.FailureResult(ex, "Error searching observations");
-            }
+            return $"OBS-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
         }
     }
 }

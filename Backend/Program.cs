@@ -16,6 +16,7 @@ builder.Services.AddDbContext<SafetyDbContext>(options =>
 // Add business services
 builder.Services.AddScoped<IObservationService, ObservationService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IIncidentObservationService, IncidentObservationService>();
 
 // Add CORS for React frontend  
 builder.Services.AddCors(options =>

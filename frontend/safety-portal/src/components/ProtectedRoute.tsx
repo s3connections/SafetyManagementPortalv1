@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { ROUTES, USER_ROLES, STORAGE_KEYS, API_ENDPOINTS, API_BASE_URL } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import { ROUTES, USER_ROLES, STORAGE_KEYS, API_ENDPOINTS, API_BASE_URL } from '../constants';
 import { useNotification } from '../contexts/NotificationContext';
 
 // User interface

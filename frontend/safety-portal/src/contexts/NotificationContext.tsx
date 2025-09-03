@@ -1,27 +1,5 @@
-import React, { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
-
-// Notification interface
-export interface Notification {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  autoHide?: boolean;
-  duration?: number;
-}
-
-// Notification context type
-export interface NotificationContextType {
-  notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
-  removeNotification: (id: string) => void;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  clearAll: () => void;
-  clearByType: (type: Notification['type']) => void;
-}
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { Snackbar, Alert, AlertColor } from '@mui/material';
 
 // Notification types
 export const NOTIFICATION_TYPES = {
@@ -31,243 +9,146 @@ export const NOTIFICATION_TYPES = {
   INFO: 'info' as const,
 };
 
-// App settings
-export const APP_SETTINGS = {
-  NOTIFICATION_TIMEOUT: 5000,
-  MAX_NOTIFICATIONS: 10,
-  AUTO_HIDE_SUCCESS: true,
-  AUTO_HIDE_INFO: true,
-  AUTO_HIDE_WARNING: false,
-  AUTO_HIDE_ERROR: false,
-};
+interface Notification {
+  id: string;
+  type: AlertColor;
+  title: string;
+  message: string;
+  duration?: number;
+  autoHide?: boolean;
+}
 
-// Action types
-type NotificationAction =
-  | { type: 'ADD_NOTIFICATION'; payload: Notification }
-  | { type: 'REMOVE_NOTIFICATION'; payload: string }
-  | { type: 'MARK_AS_READ'; payload: string }
-  | { type: 'MARK_ALL_AS_READ' }
-  | { type: 'CLEAR_ALL' }
-  | { type: 'CLEAR_BY_TYPE'; payload: Notification['type'] };
+interface NotificationContextType {
+  notifications: Notification[];
+  showNotification: (
+    type: AlertColor,
+    title: string,
+    message: string,
+    duration?: number,
+    autoHide?: boolean
+  ) => void;
+  showSuccess: (title: string, message: string, duration?: number) => void;
+  showError: (title: string, message: string, duration?: number) => void;
+  showWarning: (title: string, message: string, duration?: number) => void;
+  showInfo: (title: string, message: string, duration?: number) => void;
+  hideNotification: (id: string) => void;
+  clearAllNotifications: () => void;
+}
 
-// Initial state
-const initialState: { notifications: Notification[] } = {
-  notifications: [],
-};
-
-// Reducer function
-const notificationReducer = (
-  state: { notifications: Notification[] },
-  action: NotificationAction
-): { notifications: Notification[] } => {
-  switch (action.type) {
-    case 'ADD_NOTIFICATION':
-      return {
-        ...state,
-        notifications: [
-          action.payload,
-          ...state.notifications.slice(0, APP_SETTINGS.MAX_NOTIFICATIONS - 1),
-        ],
-      };
-
-    case 'REMOVE_NOTIFICATION':
-      return {
-        ...state,
-        notifications: state.notifications.filter((n) => n.id !== action.payload),
-      };
-
-    case 'MARK_AS_READ':
-      return {
-        ...state,
-        notifications: state.notifications.map((n) =>
-          n.id === action.payload ? { ...n, read: true } : n
-        ),
-      };
-
-    case 'MARK_ALL_AS_READ':
-      return {
-        ...state,
-        notifications: state.notifications.map((n) => ({ ...n, read: true })),
-      };
-
-    case 'CLEAR_ALL':
-      return {
-        ...state,
-        notifications: [],
-      };
-
-    case 'CLEAR_BY_TYPE':
-      return {
-        ...state,
-        notifications: state.notifications.filter((n) => n.type !== action.payload),
-      };
-
-    default:
-      return state;
-  }
-};
-
-// Create context
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-// Provider component
 interface NotificationProviderProps {
   children: ReactNode;
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [state, dispatch] = useReducer(notificationReducer, initialState);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Generate unique ID
   const generateId = useCallback(() => {
-    return `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }, []);
 
-  // Add notification
-  const addNotification = useCallback(
-    (notificationData: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-      const notification: Notification = {
-        ...notificationData,
-        id: generateId(),
-        timestamp: new Date().toISOString(),
-        read: false,
-        autoHide: notificationData.autoHide !== undefined 
-          ? notificationData.autoHide 
-          : (notificationData.type === 'success' || notificationData.type === 'info'),
-        duration: notificationData.duration || APP_SETTINGS.NOTIFICATION_TIMEOUT,
-      };
+  const showNotification = useCallback((
+    type: AlertColor,
+    title: string,
+    message: string,
+    duration: number = 5000,
+    autoHide: boolean = true
+  ) => {
+    const id = generateId();
+    const notification: Notification = {
+      id,
+      type,
+      title,
+      message,
+      duration,
+      autoHide,
+    };
 
-      dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+    setNotifications(prev => [...prev, notification]);
 
-      // Auto-hide notification if configured
-      if (notification.autoHide) {
-        setTimeout(() => {
-          dispatch({ type: 'REMOVE_NOTIFICATION', payload: notification.id });
-        }, notification.duration);
-      }
-    },
-    [generateId]
-  );
+    if (autoHide && duration > 0) {
+      setTimeout(() => {
+        hideNotification(id);
+      }, duration);
+    }
+  }, [generateId]);
 
-  // Remove notification
-  const removeNotification = useCallback((id: string) => {
-    dispatch({ type: 'REMOVE_NOTIFICATION', payload: id });
+  const showSuccess = useCallback((title: string, message: string, duration: number = 5000) => {
+    showNotification(NOTIFICATION_TYPES.SUCCESS, title, message, duration);
+  }, [showNotification]);
+
+  const showError = useCallback((title: string, message: string, duration: number = 8000) => {
+    showNotification(NOTIFICATION_TYPES.ERROR, title, message, duration);
+  }, [showNotification]);
+
+  const showWarning = useCallback((title: string, message: string, duration: number = 6000) => {
+    showNotification(NOTIFICATION_TYPES.WARNING, title, message, duration);
+  }, [showNotification]);
+
+  const showInfo = useCallback((title: string, message: string, duration: number = 5000) => {
+    showNotification(NOTIFICATION_TYPES.INFO, title, message, duration);
+  }, [showNotification]);
+
+  const hideNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
   }, []);
 
-  // Mark as read
-  const markAsRead = useCallback((id: string) => {
-    dispatch({ type: 'MARK_AS_READ', payload: id });
+  const clearAllNotifications = useCallback(() => {
+    setNotifications([]);
   }, []);
 
-  // Mark all as read
-  const markAllAsRead = useCallback(() => {
-    dispatch({ type: 'MARK_ALL_AS_READ' });
-  }, []);
+  const handleClose = useCallback((id: string) => {
+    hideNotification(id);
+  }, [hideNotification]);
 
-  // Clear all notifications
-  const clearAll = useCallback(() => {
-    dispatch({ type: 'CLEAR_ALL' });
-  }, []);
-
-  // Clear notifications by type
-  const clearByType = useCallback((type: Notification['type']) => {
-    dispatch({ type: 'CLEAR_BY_TYPE', payload: type });
-  }, []);
-
-  // Context value
-  const contextValue: NotificationContextType = {
-    notifications: state.notifications,
-    addNotification,
-    removeNotification,
-    markAsRead,
-    markAllAsRead,
-    clearAll,
-    clearByType,
-  };
-
-  return (
-    <NotificationContext.Provider value={contextValue}>
-      {children}
-    </NotificationContext.Provider>
-  );
-};
-
-// Hook to use notification context
-export const useNotification = (): NotificationContextType => {
-  const context = useContext(NotificationContext);
-  
-  if (context === undefined) {
-    throw new Error('useNotification must be used within a NotificationProvider');
-  }
-  
-  return context;
-};
-
-// Convenience hooks for different notification types
-export const useNotificationActions = () => {
-  const { addNotification } = useNotification();
-
-  const showSuccess = useCallback(
-    (title: string, message: string, options?: Partial<Notification>) => {
-      addNotification({
-        type: NOTIFICATION_TYPES.SUCCESS,
-        title,
-        message,
-        ...options,
-      });
-    },
-    [addNotification]
-  );
-
-  const showError = useCallback(
-    (title: string, message: string, options?: Partial<Notification>) => {
-      addNotification({
-        type: NOTIFICATION_TYPES.ERROR,
-        title,
-        message,
-        autoHide: false,
-        ...options,
-      });
-    },
-    [addNotification]
-  );
-
-  const showWarning = useCallback(
-    (title: string, message: string, options?: Partial<Notification>) => {
-      addNotification({
-        type: NOTIFICATION_TYPES.WARNING,
-        title,
-        message,
-        autoHide: false,
-        ...options,
-      });
-    },
-    [addNotification]
-  );
-
-  const showInfo = useCallback(
-    (title: string, message: string, options?: Partial<Notification>) => {
-      addNotification({
-        type: NOTIFICATION_TYPES.INFO,
-        title,
-        message,
-        ...options,
-      });
-    },
-    [addNotification]
-  );
-
-  return {
+  const value: NotificationContextType = {
+    notifications,
+    showNotification,
     showSuccess,
     showError,
     showWarning,
     showInfo,
+    hideNotification,
+    clearAllNotifications,
   };
+
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+      {notifications.map((notification) => (
+        <Snackbar
+          key={notification.id}
+          open={true}
+          autoHideDuration={notification.autoHide ? notification.duration : null}
+          onClose={() => handleClose(notification.id)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert
+            severity={notification.type}
+            onClose={() => handleClose(notification.id)}
+            variant="filled"
+            sx={{ width: '100%', minWidth: '300px' }}
+          >
+            <strong>{notification.title}</strong>
+            {notification.message && (
+              <div style={{ marginTop: '4px' }}>
+                {notification.message}
+              </div>
+            )}
+          </Alert>
+        </Snackbar>
+      ))}
+    </NotificationContext.Provider>
+  );
 };
 
-// Default export
-export default NotificationContext;
+export const useNotification = (): NotificationContextType => {
+  const context = useContext(NotificationContext);
+  if (context === undefined) {
+    throw new Error('useNotification must be used within a NotificationProvider');
+  }
+  return context;
+};
 
-// Export types
-export type { NotificationContextType };
-export { NOTIFICATION_TYPES };
+export default NotificationProvider;

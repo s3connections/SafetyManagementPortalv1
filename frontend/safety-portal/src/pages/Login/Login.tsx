@@ -52,7 +52,23 @@ const Login: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  setError('');
+  setIsLoading(true);
+try {
+    const success = await login(formData.email, formData.password);
+
+    if (success) {
+      navigate('/dashboard');
+    } else {
+      setError('Invalid email or password');
+    }
+  } catch (error) {
+    setError('An error occurred during login');
+  } finally {
+    setIsLoading(false);
+  }
+};
     
     if (!formData.email || !formData.password) {
       setError('Please enter both email and password');

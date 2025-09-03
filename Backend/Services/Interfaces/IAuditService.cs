@@ -1,3 +1,4 @@
+using Backend.DTOs.Common;
 using Backend.DTOs.Audit;
 using Backend.Models;
 
@@ -12,6 +13,6 @@ namespace Backend.Services.Interfaces
         Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByPlantAsync(int plantId);
         Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByDepartmentAsync(int departmentId);
         Task<ApiResponse<IEnumerable<AuditDto>>> GetOverdueAuditsAsync();
-        Task<ApiResponse<object>> GetAuditStatisticsAsync();
+        Task<ApiResponse<AuditStatisticsDto>> GetAuditStatisticsAsync();
     }
 }

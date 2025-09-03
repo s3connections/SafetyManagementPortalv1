@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ApiResponse, Audit, AuditStatus, AuditType } from '../types';
+import { ApiResponse, PaginatedResponse, /* other types */ } from '../types';
 
 // Audit state interface
 interface AuditState {

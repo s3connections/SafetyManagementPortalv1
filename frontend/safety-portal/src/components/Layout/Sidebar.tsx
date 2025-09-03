@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ROUTES, USER_ROLES } from '../../constants';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { ROUTES, USER_ROLES, APP_NAME, SIDEBAR_MENU_ITEMS } from '../../constants';
 
 // Sidebar props interface
 interface SidebarProps {

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.Models;
 using Backend.DTOs.Common;
+using Backend.Services.Interfaces; // For service interfaces
 using Backend.DTOs.Incident;
 using Backend.DTOs.Employee;
 using System;

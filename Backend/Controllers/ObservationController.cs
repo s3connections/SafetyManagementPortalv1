@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.Models.Entities;
 using Backend.Services;
+using Backend.DTOs.Common; // For ApiResponse
+using Backend.Services.Interfaces; // For service interfaces
 
 namespace Backend.Controllers
 {

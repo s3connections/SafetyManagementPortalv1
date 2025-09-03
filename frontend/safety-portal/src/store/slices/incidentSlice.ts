@@ -1,6 +1,7 @@
 // src/store/slices/incidentSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api';     // NOT '../../utils/axios'
+import { ApiResponse, PaginatedResponse, /* other types */ } from '../types';
   
 export const fetchIncidents = createAsyncThunk(
   'incident/fetchAll',

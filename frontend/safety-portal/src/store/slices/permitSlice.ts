@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Permit, PermitStatus, PermitType, ApiResponse, PaginatedResponse } from '../types';
+import { ApiResponse, PaginatedResponse, /* other types */ } from '../types';
 
 // Permit state interface
 interface PermitState {

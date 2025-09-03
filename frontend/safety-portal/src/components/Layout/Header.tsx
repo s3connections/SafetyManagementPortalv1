@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
-import { User } from '../types/index';
+import { ROUTES, APP_NAME } from '../../constants';
+import { User } from '../../types';
 
 // Header props interface
 interface HeaderProps {
