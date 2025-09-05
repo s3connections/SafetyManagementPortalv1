@@ -1,8 +1,9 @@
+using Backend.Dtos.Permit;
 using Backend.DTOs.Common;
-using Backend.DTOs.Permit;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Backend.Models;
 
 namespace Backend.Controllers
 {

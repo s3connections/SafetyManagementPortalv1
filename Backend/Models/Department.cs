@@ -1,38 +1,28 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
-    [Table("Departments")]
     public class Department : BaseEntity
     {
         [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
-        
-        [Required]
-        [StringLength(20)]
-        public string Code { get; set; }
-        
-        [StringLength(500)]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500)]
         public string? Description { get; set; }
+
+        [MaxLength(50)]
+        public string? DepartmentCode { get; set; }
+
+        public int? PlantId { get; set; }
         
-        public int? ParentDepartmentId { get; set; }
-        
-        [ForeignKey("ParentDepartmentId")]
-        public virtual Department? ParentDepartment { get; set; }
-        
-        public int? HoDId { get; set; }
-        
-        [ForeignKey("HoDId")]
-        public virtual Employee? HoD { get; set; }
-        
-        [Required]
-        public bool IsActive { get; set; } = true;
-        
-        // Navigation Properties
-        public virtual ICollection<Department> SubDepartments { get; set; } = new List<Department>();
-        public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
+        [ForeignKey(nameof(PlantId))]
+        public virtual Plant? Plant { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<Observation> Observations { get; set; } = new List<Observation>();
+        public virtual ICollection<Audit> Audits { get; set; } = new List<Audit>();
+        public virtual ICollection<Permit> Permits { get; set; } = new List<Permit>();
     }
 }

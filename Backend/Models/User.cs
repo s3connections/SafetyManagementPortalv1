@@ -1,36 +1,37 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
 
 namespace Backend.Models
 {
-    public class User : IdentityUser
+    public class User : BaseEntity
     {
         [Required]
-        [StringLength(100)]
-        public string FirstName { get; set; } = string.Empty;
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
-        public string LastName { get; set; } = string.Empty;
+        [EmailAddress]
+        [MaxLength(255)]
+        public string Email { get; set; } = string.Empty;
 
-        [StringLength(100)]
-        public string? MiddleName { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Role { get; set; } = string.Empty;
 
-        public bool IsActive { get; set; } = true;
+        [MaxLength(20)]
+        public string? PhoneNumber { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [MaxLength(100)]
+        public string? Department { get; set; }
 
-        public DateTime? LastLoginAt { get; set; }
-
-        [StringLength(200)]
-        public string? ProfilePicture { get; set; }
+        public bool IsEmailVerified { get; set; } = false;
+        
+        public DateTime? LastLoginDate { get; set; }
 
         // Navigation properties
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public virtual ICollection<Audit> CreatedAudits { get; set; } = new List<Audit>();
-        public virtual ICollection<Permit> CreatedPermits { get; set; } = new List<Permit>();
-
-        // Computed property for full name
-        public string FullName => $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
+        public virtual ICollection<Observation> ReportedObservations { get; set; } = new List<Observation>();
+        public virtual ICollection<Observation> AssignedObservations { get; set; } = new List<Observation>();
+        public virtual ICollection<Audit> Audits { get; set; } = new List<Audit>();
+        public virtual ICollection<Permit> RequestedPermits { get; set; } = new List<Permit>();
+        public virtual ICollection<Permit> ApprovedPermits { get; set; } = new List<Permit>();
     }
 }

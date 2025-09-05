@@ -1,18 +1,17 @@
 using Backend.Models;
-using Backend.DTOs.Common;
 using Backend.DTOs.Incident;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Backend.Services.Interfaces
 {
     public interface IIncidentObservationService : IBaseService<IncidentObservation, IncidentObservationDto, CreateIncidentObservationDto, UpdateIncidentObservationDto>
     {
+        Task<IEnumerable<IncidentObservationDto>> GetByUserIdAsync(int userId);
+        Task<IEnumerable<IncidentObservationDto>> GetBySeverityAsync(IncidentSeverity severity);
+        Task<IEnumerable<IncidentObservationDto>> GetByTypeAsync(IncidentType type);
+        Task<IEnumerable<IncidentObservationDto>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task<string> GenerateIncidentNumberAsync();
-        Task<List<IncidentObservationDto>> GetByStatusAsync(int statusId);
-        Task<List<IncidentObservationDto>> GetByPlantAsync(int plantId);
-        Task<List<IncidentObservationDto>> GetOverdueIncidentsAsync();
+        Task<IncidentObservationDto?> UpdateInvestigationStatusAsync(int id, int investigatedByUserId, string? findings = null);
+        Task<IEnumerable<IncidentObservationDto>> GetPendingInvestigationsAsync();
+        Task<IEnumerable<IncidentObservationDto>> GetRequiringReportingAsync();
     }
-
-    
 }

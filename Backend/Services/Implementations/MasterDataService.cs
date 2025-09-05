@@ -1,7 +1,7 @@
 using Backend.Data;
 using Backend.DTOs.Incident;
-using Backend.DTOs.Audit;
-using Backend.DTOs.Permit;
+using Backend.Dtos.Audit;
+using Backend.Dtos.Permit;
 using Backend.DTOs.Employee;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;

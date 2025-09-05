@@ -1,141 +1,42 @@
-using Backend.DTOs.Common;
-using Backend.DTOs.Employee;
-using Backend.DTOs.Incident;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using Backend.Models;
 
-namespace Backend.DTOs.Permit
+namespace Backend.Dtos.Permit
 {
-    public class PermitDto : BaseDto
+    public class PermitDto
     {
-        public string Title { get; set; }
-        public string PermitNumber { get; set; }
-        public int PermitTypeId { get; set; }
-        public PermitTypeDto PermitType { get; set; }
-        public int PlantId { get; set; }
-        public PlantDto Plant { get; set; }
-        public int LocationId { get; set; }
-        public LocationDto Location { get; set; }
-        public int RequestedById { get; set; }
-        public EmployeeDto RequestedBy { get; set; }
-        public DateTime ValidFrom { get; set; }
-        public DateTime ValidTo { get; set; }
-        public string WorkDescription { get; set; }
-        public string Status { get; set; }
-        public string? HazardIdentification { get; set; }
-        public string? SafetyMeasures { get; set; }
-        public string? ApprovalComments { get; set; }
-        public DateTime? ApprovedDate { get; set; }
-        public int? ApprovedById { get; set; }
-        public EmployeeDto? ApprovedBy { get; set; }
-        public List<EmployeeDto>? Workers { get; set; }
-        public List<PermitQuestionResponseDto>? QuestionResponses { get; set; }
-        public List<PermitApprovalHistoryDto>? ApprovalHistory { get; set; }
-    }
-
-    public class CreatePermitDto
-    {
-        [Required]
-        public string Title { get; set; }
-        
-        [Required]
-        public int PermitTypeId { get; set; }
-        
-        [Required]
-        public int PlantId { get; set; }
-        
-        [Required]
-        public int LocationId { get; set; }
-        
-        [Required]
-        public int RequestedById { get; set; }
-        
-        [Required]
-        public DateTime ValidFrom { get; set; }
-        
-        [Required]
-        public DateTime ValidTo { get; set; }
-        
-        [Required]
-        public string WorkDescription { get; set; }
-        
-        public List<int>? WorkerIds { get; set; }
-        
-        public string? HazardIdentification { get; set; }
-        
-        public string? SafetyMeasures { get; set; }
-        
-        public List<CreatePermitQuestionResponseDto>? QuestionResponses { get; set; }
-    }
-
-    public class UpdatePermitDto
-    {
-        public string? Title { get; set; }
-        public int? PermitTypeId { get; set; }
-        public int? PlantId { get; set; }
-        public int? LocationId { get; set; }
-        public DateTime? ValidFrom { get; set; }
-        public DateTime? ValidTo { get; set; }
-        public string? WorkDescription { get; set; }
-        public List<int>? WorkerIds { get; set; }
-        public string? HazardIdentification { get; set; }
-        public string? SafetyMeasures { get; set; }
-        public string? ApprovalComments { get; set; }
-    }
-
-    public class PermitTypeDto : BaseDto
-    {
-        public string Name { get; set; }
-        public string Code { get; set; }
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string PermitNumber { get; set; } = string.Empty;
+        public string? PermitType { get; set; }
         public string? Description { get; set; }
-        public int CategoryId { get; set; }
-        public CategoryDto Category { get; set; }
-        public int ValidityHours { get; set; }
-        public bool RequiresApproval { get; set; }
-        public bool IsActive { get; set; }
-    }
-
-    public class PermitQuestionDto : BaseDto
-    {
-        public int PermitTypeId { get; set; }
-        public PermitTypeDto PermitType { get; set; }
-        public string QuestionText { get; set; }
-        public string ResponseType { get; set; }
-        public string? ExpectedResponse { get; set; }
-        public bool IsMandatory { get; set; }
-        public int SortOrder { get; set; }
-        public bool IsActive { get; set; }
-    }
-
-    public class PermitQuestionResponseDto : BaseDto
-    {
-        public int PermitId { get; set; }
-        public int QuestionId { get; set; }
-        public PermitQuestionDto Question { get; set; }
-        public string Response { get; set; }
-        public string? Comments { get; set; }
-    }
-
-    public class CreatePermitQuestionResponseDto
-    {
-        [Required]
-        public int QuestionId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public PermitStatus Status { get; set; }
+        public string? WorkLocation { get; set; }
+        public string? SafetyRequirements { get; set; }
+        public string? ApprovalNotes { get; set; }
+        public DateTime? ApprovedDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
         
-        [Required]
-        public string Response { get; set; }
+        // User information
+        public int RequestedByUserId { get; set; }
+        public string RequestedByUserName { get; set; } = string.Empty;
+        public string RequestedByUserEmail { get; set; } = string.Empty;
         
-        public string? Comments { get; set; }
-    }
-
-    public class PermitApprovalHistoryDto : BaseDto
-    {
-        public int PermitId { get; set; }
-        public int ApprovedById { get; set; }
-        public EmployeeDto ApprovedBy { get; set; }
-        public string ApprovalType { get; set; }
-        public string Status { get; set; }
-        public string? Comments { get; set; }
-        public DateTime ApprovalDate { get; set; }
+        public int? ApprovedByUserId { get; set; }
+        public string? ApprovedByUserName { get; set; }
+        public string? ApprovedByUserEmail { get; set; }
+        
+        public int? ResponsibleEngineerId { get; set; }
+        public string? ResponsibleEngineerName { get; set; }
+        public string? ResponsibleEngineerEmail { get; set; }
+        
+        // Plant and Department information
+        public int? PlantId { get; set; }
+        public string? PlantName { get; set; }
+        
+        public int? DepartmentId { get; set; }
+        public string? DepartmentName { get; set; }
     }
 }

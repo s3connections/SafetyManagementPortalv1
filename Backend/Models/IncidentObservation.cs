@@ -17,31 +17,31 @@ namespace Backend.Models
         public string IncidentNumber { get; set; }
         
         [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } 
         
         [Required]
         public int IncidentTypeId { get; set; }
         
         [ForeignKey("IncidentTypeId")]
-        public virtual IncidentType IncidentType { get; set; }
+        public virtual IncidentType? IncidentType { get; set; }
         
         [Required]
         public int PriorityId { get; set; }
         
         [ForeignKey("PriorityId")]
-        public virtual Priority Priority { get; set; }
+        public virtual Priority? Priority { get; set; }
         
         [Required]
         public int PlantId { get; set; }
         
         [ForeignKey("PlantId")]
-        public virtual Plant Plant { get; set; }
+        public virtual Plant? Plant { get; set; }
         
         [Required]
         public int LocationId { get; set; }
         
         [ForeignKey("LocationId")]
-        public virtual Location Location { get; set; }
+        public virtual Location? Location { get; set; }
         
         [Required]
         public DateTime DateTimeObserved { get; set; }
@@ -57,7 +57,7 @@ namespace Backend.Models
         public int StatusId { get; set; }
         
         [ForeignKey("StatusId")]
-        public virtual IncidentStatus Status { get; set; }
+        public virtual IncidentStatus? Status { get; set; }
         
         // Navigation Properties
         public virtual ICollection<InvestigationWitness> Witnesses { get; set; } = new List<InvestigationWitness>();

@@ -1,34 +1,118 @@
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using Backend.Data;
-using Backend.DTOs.Common;
-using Backend.DTOs.Permit;
 using Backend.Models;
 using Backend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Backend.Dtos.Permit;
+
 namespace Backend.Services.Implementations
 {
     public class PermitService : BaseService<Permit, PermitDto, CreatePermitDto, UpdatePermitDto>, IPermitService
     {
-        public PermitService(SafetyManagementContext ctx) : base(ctx) { }
-        private SafetyManagementContext C => (SafetyManagementContext)_context;
-        public override async Task<PagedResult<PermitDto>> GetAllAsync(SearchFilter f)
+        public PermitService(SafetyDbContext context, IMapper mapper) 
+            : base(context, mapper)
         {
-            var q=C.Permits.Where(p=>!p.IsDeleted);
-            var total=await q.CountAsync();
-            var data=await q.Skip((f.PageNumber-1)*f.PageSize).Take(f.PageSize).Select(p=>new PermitDto{Id=p.Id,Title=p.Title,PermitNumber=p.PermitNumber,Status=p.Status}).ToListAsync();
-            return new PagedResult<PermitDto>{Items=data,TotalItems=total,PageNumber=f.PageNumber,PageSize=f.PageSize,TotalPages=(int)Math.Ceiling((double)total/f.PageSize)};
         }
-        public override async Task<PermitDto> GetByIdAsync(int id){var p=await C.Permits.FirstOrDefaultAsync(x=>x.Id==id&&!x.IsDeleted);return p==null?null:new PermitDto{Id=p.Id,Title=p.Title,PermitNumber=p.PermitNumber,Status=p.Status};}
-        public override async Task<PermitDto> CreateAsync(CreatePermitDto d){var num=await GeneratePermitNumberAsync();var p=new Permit{Title=d.Title,PermitNumber=num,PermitTypeId=d.PermitTypeId,PlantId=d.PlantId,LocationId=d.LocationId,RequestedById=d.RequestedById,ValidFrom=d.ValidFrom,ValidTo=d.ValidTo,WorkDescription=d.WorkDescription,Status="Pending",CreatedAt=DateTime.UtcNow,CreatedBy=1};C.Permits.Add(p);await C.SaveChangesAsync();return new PermitDto{Id=p.Id,PermitNumber=p.PermitNumber,Title=p.Title};}
-        public override async Task<PermitDto> UpdateAsync(int id,UpdatePermitDto d){var p=await C.Permits.FirstOrDefaultAsync(x=>x.Id==id&&!x.IsDeleted);if(p==null)return null;if(d.ValidTo.HasValue)p.ValidTo=d.ValidTo.Value;p.UpdatedAt=DateTime.UtcNow;p.UpdatedBy=1;await C.SaveChangesAsync();return new PermitDto{Id=p.Id,Title=p.Title,PermitNumber=p.PermitNumber};}
-        public async Task<string> GeneratePermitNumberAsync(){var y=DateTime.Now.Year;var c=await C.Permits.CountAsync(p=>p.CreatedAt.Year==y);return $"PER-{y}-{(c+1):D6}";}
-        public async Task<List<PermitDto>> GetActivePermitsAsync()=>await C.Permits.Where(p=>p.Status=="Approved"&&!p.IsDeleted).Select(p=>new PermitDto{Id=p.Id,Title=p.Title}).ToListAsync();
-        public async Task<List<PermitDto>> GetExpiringPermitsAsync(int d){var cut=DateTime.UtcNow.AddDays(d);return await C.Permits.Where(p=>p.Status=="Approved"&&p.ValidTo<=cut&&!p.IsDeleted).Select(p=>new PermitDto{Id=p.Id,Title=p.Title}).ToListAsync();}
-        public async Task<PermitDto> ApprovePermitAsync(int id,string cmt){var p=await C.Permits.FirstOrDefaultAsync(x=>x.Id==id&&!x.IsDeleted);if(p==null||p.Status!="Pending")return null;p.Status="Approved";p.ApprovedDate=DateTime.UtcNow;p.ApprovalComments=cmt;p.ApprovedById=1;p.UpdatedAt=DateTime.UtcNow;p.UpdatedBy=1;C.PermitApprovalHistories.Add(new PermitApprovalHistory{PermitId=id,ApprovedById=1,ApprovalType="Approval",Status="Approved",Comments=cmt,ApprovalDate=DateTime.UtcNow,CreatedAt=DateTime.UtcNow,CreatedBy=1});await C.SaveChangesAsync();return new PermitDto{Id=p.Id,Status=p.Status};}
-        public async Task<PermitDto> RejectPermitAsync(int id,string cmt){var p=await C.Permits.FirstOrDefaultAsync(x=>x.Id==id&&!x.IsDeleted);if(p==null||p.Status!="Pending")return null;p.Status="Rejected";p.ApprovalComments=cmt;p.ApprovedById=1;p.UpdatedAt=DateTime.UtcNow;p.UpdatedBy=1;C.PermitApprovalHistories.Add(new PermitApprovalHistory{PermitId=id,ApprovedById=1,ApprovalType="Rejection",Status="Rejected",Comments=cmt,ApprovalDate=DateTime.UtcNow,CreatedAt=DateTime.UtcNow,CreatedBy=1});await C.SaveChangesAsync();return new PermitDto{Id=p.Id,Status=p.Status};}
-        public async Task<PermitQuestionResponseDto> AddQuestionResponseAsync(int id,CreatePermitQuestionResponseDto r){var qr=new PermitQuestionResponse{PermitId=id,QuestionId=r.QuestionId,Response=r.Response,Comments=r.Comments,CreatedAt=DateTime.UtcNow,CreatedBy=1};C.PermitQuestionResponses.Add(qr);await C.SaveChangesAsync();return new PermitQuestionResponseDto{Id=qr.Id,Response=qr.Response};}
+
+        public async Task<IEnumerable<PermitDto>> GetByUserIdAsync(int userId)
+        {
+            var permits = await _dbSet
+                .Include(p => p.RequestedByUser)
+                .Include(p => p.ApprovedByUser)
+                .Include(p => p.ResponsibleEngineer)
+                .Include(p => p.Plant)
+                .Include(p => p.Department)
+                .Where(p => p.IsActive && 
+                           (p.RequestedByUserId == userId || 
+                            p.ResponsibleEngineerId == userId || 
+                            p.ApprovedByUserId == userId))
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<PermitDto>>(permits);
+        }
+
+        public async Task<IEnumerable<PermitDto>> GetByStatusAsync(PermitStatus status)
+        {
+            var permits = await _dbSet
+                .Include(p => p.RequestedByUser)
+                .Include(p => p.ApprovedByUser)
+                .Include(p => p.ResponsibleEngineer)
+                .Include(p => p.Plant)
+                .Include(p => p.Department)
+                .Where(p => p.IsActive && p.Status == status)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<PermitDto>>(permits);
+        }
+
+        public async Task<IEnumerable<PermitDto>> GetExpiringPermitsAsync(int daysAhead = 30)
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(daysAhead);
+            
+            var permits = await _dbSet
+                .Include(p => p.RequestedByUser)
+                .Include(p => p.ApprovedByUser)
+                .Include(p => p.ResponsibleEngineer)
+                .Include(p => p.Plant)
+                .Include(p => p.Department)
+                .Where(p => p.IsActive && 
+                           p.Status == PermitStatus.Approved && 
+                           p.EndDate <= cutoffDate)
+                .OrderBy(p => p.EndDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<PermitDto>>(permits);
+        }
+
+        public async Task<string> GeneratePermitNumberAsync()
+        {
+            var today = DateTime.Today;
+            var prefix = $"PER-{today:yyyyMMdd}";
+            
+            var lastPermit = await _dbSet
+                .Where(p => p.PermitNumber.StartsWith(prefix))
+                .OrderByDescending(p => p.PermitNumber)
+                .FirstOrDefaultAsync();
+
+            var sequence = 1;
+            if (lastPermit != null && lastPermit.PermitNumber.Length > prefix.Length)
+            {
+                var lastSequence = lastPermit.PermitNumber.Substring(prefix.Length + 1);
+                if (int.TryParse(lastSequence, out var lastSeq))
+                {
+                    sequence = lastSeq + 1;
+                }
+            }
+
+            return $"{prefix}-{sequence:D4}";
+        }
+
+        public async Task<PermitDto?> UpdateStatusAsync(int id, PermitStatus status, int? approvedByUserId = null, string? notes = null)
+        {
+            var permit = await _dbSet.FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+            if (permit == null) return null;
+
+            permit.Status = status;
+            permit.UpdatedAt = DateTime.UtcNow;
+
+            if (status == PermitStatus.Approved)
+            {
+                permit.ApprovedDate = DateTime.UtcNow;
+                if (approvedByUserId.HasValue)
+                {
+                    permit.ApprovedByUserId = approvedByUserId.Value;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(notes))
+            {
+                permit.ApprovalNotes = notes;
+            }
+
+            await _context.SaveChangesAsync();
+            return await GetByIdAsync(id);
+        }
     }
 }

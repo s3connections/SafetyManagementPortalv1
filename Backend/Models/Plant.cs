@@ -1,36 +1,28 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
-    public class Plant
+    public class Plant : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
-        [StringLength(100)]
+        [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(500)]
+        [MaxLength(500)]
         public string? Description { get; set; }
 
-        [Required]
-        [StringLength(200)]
-        public string Location { get; set; } = string.Empty;
+        [MaxLength(200)]
+        public string? Location { get; set; }
 
-        [StringLength(50)]
+        [MaxLength(50)]
         public string? PlantCode { get; set; }
 
-        public bool IsActive { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime? UpdatedAt { get; set; }
+        public bool IsOperational { get; set; } = true;
 
         // Navigation properties
-        public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
-        public virtual ICollection<Location> Locations { get; set; } = new List<Location>();
-        public virtual ICollection<IncidentObservation> IncidentObservations { get; set; } = new List<IncidentObservation>();
+        public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
+        public virtual ICollection<Observation> Observations { get; set; } = new List<Observation>();
         public virtual ICollection<Audit> Audits { get; set; } = new List<Audit>();
+        public virtual ICollection<Permit> Permits { get; set; } = new List<Permit>();
     }
 }

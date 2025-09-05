@@ -1,3 +1,4 @@
+using System;
 using Backend.DTOs.Common;
 using Backend.DTOs.Incident;
 using Backend.Services.Interfaces;

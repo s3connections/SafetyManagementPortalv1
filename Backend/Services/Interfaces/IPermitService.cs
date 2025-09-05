@@ -1,18 +1,14 @@
 using Backend.Models;
-using Backend.DTOs.Common;
-using Backend.DTOs.Permit;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Backend.Dtos.Permit;
 
 namespace Backend.Services.Interfaces
 {
     public interface IPermitService : IBaseService<Permit, PermitDto, CreatePermitDto, UpdatePermitDto>
     {
+        Task<IEnumerable<PermitDto>> GetByUserIdAsync(int userId);
+        Task<IEnumerable<PermitDto>> GetByStatusAsync(PermitStatus status);
+        Task<IEnumerable<PermitDto>> GetExpiringPermitsAsync(int daysAhead = 30);
         Task<string> GeneratePermitNumberAsync();
-        Task<List<PermitDto>> GetActivePermitsAsync();
-        Task<List<PermitDto>> GetExpiringPermitsAsync(int daysAhead = 7);
-        Task<PermitDto> ApprovePermitAsync(int permitId, string comments);
-        Task<PermitDto> RejectPermitAsync(int permitId, string comments);
-        Task<PermitQuestionResponseDto> AddQuestionResponseAsync(int permitId, CreatePermitQuestionResponseDto responseDto);
+        Task<PermitDto?> UpdateStatusAsync(int id, PermitStatus status, int? approvedByUserId = null, string? notes = null);
     }
 }

@@ -1,246 +1,292 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Card, CardContent, Typography, Button, Grid, Chip, Box,
-  List, ListItem, ListItemText, Paper, Divider, Alert
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Grid,
+  Chip,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
 } from '@mui/material';
-import { 
-  Edit as EditIcon, 
-  CheckCircle as ApproveIcon,
+import {
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  Print as PrintIcon 
 } from '@mui/icons-material';
 
 interface PermitDetailsProps {
   permitId: string;
-  onEdit?: () => void;
-  onApprove?: () => void;
-  onCancel?: () => void;
 }
 
 interface PermitDetail {
-  id: string;
+  id: number;
   permitNumber: string;
   title: string;
-  permitType: string;
+  permitType?: string;
+  description?: string;
   status: string;
-  description: string;
-  workLocation: string;
-  startDate: Date;
-  endDate: Date;
-  startTime: string;
-  endTime: string;
-  requestedBy: string;
-  department: string;
-  contractorCompany?: string;
-  workCrew: string;
-  hazards: string[];
-  safetyMeasures: string;
-  equipmentRequired: string;
-  emergencyContacts: string;
-  specialInstructions?: string;
-  approvals?: {
-    approvedBy: string;
-    approvedDate: Date;
-    comments?: string;
-  }[];
+  startDate: string;
+  endDate: string;
+  workLocation?: string;
+  safetyRequirements?: string;
+  requestedByUserName: string;
+  requestedByUserEmail: string;
+  approvedByUserName?: string;
+  approvedDate?: string;
+  approvalNotes?: string;
+  createdAt: string;
 }
 
-const PermitDetails: React.FC<PermitDetailsProps> = ({
-  permitId, onEdit, onApprove, onCancel
-}) => {
+const PermitDetails: React.FC<PermitDetailsProps> = ({ permitId }) => {
+  const navigate = useNavigate();
   const [permit, setPermit] = useState<PermitDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadPermitDetails();
+    // Mock data for demonstration
+    const mockPermit: PermitDetail = {
+      id: parseInt(permitId),
+      permitNumber: `PER-20250101-${permitId.padStart(4, '0')}`,
+      title: 'Hot Work Permit - Welding Area A',
+      permitType: 'Hot Work',
+      description: 'Welding work required for maintenance of production equipment in Area A. Work involves cutting and welding of steel components.',
+      status: 'Approved',
+      startDate: '2025-01-15',
+      endDate: '2025-01-16',
+      workLocation: 'Production Floor A, Equipment Station 5',
+      safetyRequirements: 'Fire watch required, proper ventilation, appropriate PPE including welding helmet, safety glasses, and fire-resistant clothing.',
+      requestedByUserName: 'John Smith',
+      requestedByUserEmail: 'john.smith@company.com',
+      approvedByUserName: 'Safety Manager',
+      approvedDate: '2025-01-05',
+      approvalNotes: 'All safety requirements verified. Fire extinguisher equipment confirmed available.',
+      createdAt: '2025-01-01'
+    };
+
+    setPermit(mockPermit);
+    setLoading(false);
   }, [permitId]);
 
-  const loadPermitDetails = async () => {
-    setLoading(true);
-    try {
-      // Mock data
-      const mockPermit: PermitDetail = {
-        id: permitId,
-        permitNumber: 'WP-2024-001',
-        title: 'Hot Work Permit - Welding Operations',
-        permitType: 'Hot Work',
-        status: 'Pending Approval',
-        description: 'Welding work required for pipe repair in Building A',
-        workLocation: 'Building A - Level 2, Room 245',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 86400000),
-        startTime: '08:00',
-        endTime: '17:00',
-        requestedBy: 'John Smith',
-        department: 'Maintenance',
-        workCrew: 'John Smith, Mike Johnson',
-        hazards: ['Fire/Explosion Risk', 'Hot Surfaces', 'Fumes'],
-        safetyMeasures: 'Fire watch, proper ventilation, fire extinguisher on standby',
-        equipmentRequired: 'Welding helmet, fire-resistant clothing, gas detector',
-        emergencyContacts: 'Emergency: 911, Security: 555-0123'
-      };
-      setPermit(mockPermit);
-    } catch (error) {
-      console.error('Error loading permit details:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Draft': return 'default';
-      case 'Pending Approval': return 'warning';
-      case 'Approved': return 'info';
-      case 'Active': return 'success';
-      case 'Expired': return 'error';
-      case 'Cancelled': return 'error';
-      default: return 'default';
+    switch (status.toLowerCase()) {
+      case 'approved': return 'success';
+      case 'pending': return 'warning';
+      case 'rejected': return 'error';
+      case 'expired': return 'default';
+      default: return 'primary';
     }
   };
 
-  const isExpiringSoon = () => {
-    if (!permit) return false;
-    const oneDayFromNow = new Date(Date.now() + 86400000);
-    return permit.endDate <= oneDayFromNow;
+  const handleApprove = () => {
+    // Handle permit approval
+    console.log('Approving permit:', permitId);
+  };
+
+  const handleReject = () => {
+    // Handle permit rejection
+    console.log('Rejecting permit:', permitId);
   };
 
   if (loading) {
-    return <Card><CardContent><Typography>Loading permit details...</Typography></CardContent></Card>;
+    return <Box display="flex" justifyContent="center" p={3}>Loading...</Box>;
   }
 
   if (!permit) {
-    return <Card><CardContent><Typography>Permit not found</Typography></CardContent></Card>;
+    return <Box textAlign="center" p={3}>Permit not found</Box>;
   }
 
   return (
-    <Box>
-      {/* Status Alert */}
-      {isExpiringSoon() && permit.status === 'Active' && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          This permit is expiring soon. Please renew or complete the work.
-        </Alert>
-      )}
+    <Box p={3}>
+      <Box display="flex" alignItems="center" mb={3}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/permits')}
+          sx={{ mr: 2 }}
+        >
+          Back to Permits
+        </Button>
+        <Typography variant="h4" component="h1" flexGrow={1}>
+          Permit Details
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<EditIcon />}
+          onClick={() => navigate(`/permits/${permitId}/edit`)}
+        >
+          Edit
+        </Button>
+      </Box>
 
-      {/* Header */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-            <Box>
-              <Typography variant="h4" gutterBottom>{permit.title}</Typography>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                Permit #{permit.permitNumber}
-              </Typography>
-              <Box display="flex" gap={1} mb={2}>
-                <Chip label={permit.status} color={getStatusColor(permit.status) as any} />
-                <Chip label={permit.permitType} variant="outlined" />
+      <Grid container spacing={3}>
+        <Grid size ={{xs: 12, md:8}}>
+          <Card>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6" color="primary">
+                  {permit.permitNumber}
+                </Typography>
+                <Chip
+                  label={permit.status}
+                  color={getStatusColor(permit.status) as any}
+                />
               </Box>
-            </Box>
-            <Box display="flex" gap={1}>
-              <Button variant="outlined" startIcon={<PrintIcon />}>Print</Button>
-              {permit.status === 'Pending Approval' && (
-                <>
-                  <Button variant="contained" startIcon={<ApproveIcon />} onClick={onApprove} color="success">
+
+              <Typography variant="h5" gutterBottom>
+                {permit.title}
+              </Typography>
+
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid size ={{xs: 12, sm:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Permit Type
+                  </Typography>
+                  <Typography variant="body1">
+                    {permit.permitType || 'General'}
+                  </Typography>
+                </Grid>
+                <Grid size ={{xs: 12, sm:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Work Location
+                  </Typography>
+                  <Typography variant="body1">
+                    {permit.workLocation || 'Not specified'}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid size ={{xs: 12, sm:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Start Date
+                  </Typography>
+                  <Typography variant="body1">
+                    {new Date(permit.startDate).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid size ={{xs: 12, sm:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    End Date
+                  </Typography>
+                  <Typography variant="body1">
+                    {new Date(permit.endDate).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="h6" gutterBottom>
+                Description
+              </Typography>
+              <Typography variant="body1" paragraph>
+                {permit.description || 'No description provided'}
+              </Typography>
+
+              <Typography variant="h6" gutterBottom>
+                Safety Requirements
+              </Typography>
+              <Typography variant="body1" paragraph>
+                {permit.safetyRequirements || 'No specific requirements listed'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size ={{xs: 12, md:4}}>
+          <Card sx={{ mb: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Request Information
+              </Typography>
+              <List dense>
+                <ListItem>
+                  <ListItemText
+                    primary="Requested By"
+                    secondary={`${permit.requestedByUserName} (${permit.requestedByUserEmail})`}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemText
+                    primary="Request Date"
+                    secondary={new Date(permit.createdAt).toLocaleDateString()}
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+
+          {permit.approvedByUserName && (
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Approval Information
+                </Typography>
+                <List dense>
+                  <ListItem>
+                    <ListItemText
+                      primary="Approved By"
+                      secondary={permit.approvedByUserName}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Approval Date"
+                      secondary={permit.approvedDate ? new Date(permit.approvedDate).toLocaleDateString() : 'N/A'}
+                    />
+                  </ListItem>
+                </List>
+                {permit.approvalNotes && (
+                  <Paper sx={{ p: 2, mt: 1, backgroundColor: 'grey.50' }}>
+                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                      Approval Notes
+                    </Typography>
+                    <Typography variant="body2">
+                      {permit.approvalNotes}
+                    </Typography>
+                  </Paper>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {permit.status.toLowerCase() === 'pending' && (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Actions
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={1}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    startIcon={<CheckCircleIcon />}
+                    onClick={handleApprove}
+                    fullWidth
+                  >
                     Approve
                   </Button>
-                  <Button variant="outlined" startIcon={<CancelIcon />} onClick={onCancel} color="error">
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<CancelIcon />}
+                    onClick={handleReject}
+                    fullWidth
+                  >
                     Reject
                   </Button>
-                </>
-              )}
-              <Button variant="outlined" startIcon={<EditIcon />} onClick={onEdit}>Edit</Button>
-            </Box>
-          </Box>
-
-          <Typography variant="body1" paragraph>{permit.description}</Typography>
-
-          <Grid container spacing={3}>
-            <Grid size ={{xs: 12, md:6}}>
-              <List dense>
-                <ListItem><ListItemText primary="Work Location" secondary={permit.workLocation} /></ListItem>
-                <ListItem><ListItemText primary="Valid Period" secondary={`${permit.startDate.toLocaleDateString()} - ${permit.endDate.toLocaleDateString()}`} /></ListItem>
-                <ListItem><ListItemText primary="Work Hours" secondary={`${permit.startTime} - ${permit.endTime}`} /></ListItem>
-              </List>
-            </Grid>
-            <Grid size ={{xs: 12, md:6}}>
-              <List dense>
-                <ListItem><ListItemText primary="Requested By" secondary={permit.requestedBy} /></ListItem>
-                <ListItem><ListItemText primary="Department" secondary={permit.department} /></ListItem>
-                <ListItem><ListItemText primary="Work Crew" secondary={permit.workCrew} /></ListItem>
-                {permit.contractorCompany && (
-                  <ListItem><ListItemText primary="Contractor" secondary={permit.contractorCompany} /></ListItem>
-                )}
-              </List>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {/* Safety Information */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Safety Information</Typography>
-          <Divider sx={{ mb: 2 }} />
-          
-          <Grid container spacing={3}>
-            <Grid size ={{xs:12}}>
-              <Typography variant="subtitle2" gutterBottom>Identified Hazards:</Typography>
-              <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-                {permit.hazards.map((hazard, index) => (
-                  <Chip key={index} label={hazard} color="warning" variant="outlined" size="small" />
-                ))}
-              </Box>
-            </Grid>
-
-            <Grid size ={{xs: 12, md:6}}>
-              <Typography variant="subtitle2" gutterBottom>Safety Measures:</Typography>
-              <Typography variant="body2" paragraph>{permit.safetyMeasures}</Typography>
-            </Grid>
-
-            <Grid size ={{xs: 12, md:6}}>
-              <Typography variant="subtitle2" gutterBottom>Required Equipment/PPE:</Typography>
-              <Typography variant="body2" paragraph>{permit.equipmentRequired}</Typography>
-            </Grid>
-
-            <Grid size ={{xs: 12, md:6}}>
-              <Typography variant="subtitle2" gutterBottom>Emergency Contacts:</Typography>
-              <Typography variant="body2">{permit.emergencyContacts}</Typography>
-            </Grid>
-
-            {permit.specialInstructions && (
-              <Grid size ={{xs: 12, md:6}}>
-                <Typography variant="subtitle2" gutterBottom>Special Instructions:</Typography>
-                <Typography variant="body2">{permit.specialInstructions}</Typography>
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {/* Approvals */}
-      {permit.approvals && permit.approvals.length > 0 && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>Approval History</Typography>
-            <Divider sx={{ mb: 2 }} />
-            {permit.approvals.map((approval, index) => (
-              <Box key={index} mb={2}>
-                <Typography variant="subtitle2">
-                  Approved by: {approval.approvedBy}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Date: {approval.approvedDate.toLocaleDateString()}
-                </Typography>
-                {approval.comments && (
-                  <Typography variant="body2">
-                    Comments: {approval.comments}
-                  </Typography>
-                )}
-              </Box>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+      </Grid>
     </Box>
   );
 };

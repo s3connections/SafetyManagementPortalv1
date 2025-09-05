@@ -9,494 +9,241 @@ import {
   TextField,
   Grid,
   Chip,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Stepper,
-  Step,
-  StepLabel,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  CircularProgress
 } from '@mui/material';
 import {
+  ArrowBack as ArrowBackIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  Warning as WarningIcon,
-  Security as SecurityIcon,
-  Schedule as ScheduleIcon,
-  Person as PersonIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns';
-import { Permit, PermitStatus, PermitType } from '../../../types';
 
-interface PermitApprovalProps {
-  permitId?: number;
+interface PermitApprovalData {
+  id: number;
+  permitNumber: string;
+  title: string;
+  permitType?: string;
+  status: string;
+  requestedByUserName: string;
+  workLocation?: string;
+  startDate: string;
+  endDate: string;
 }
 
-const PermitApproval: React.FC<PermitApprovalProps> = ({ permitId }) => {
+const PermitApproval: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const actualPermitId = permitId || (id ? parseInt(id) : undefined);
-
-  const [permit, setPermit] = useState<Permit | null>(null);
+  const [permit, setPermit] = useState<PermitApprovalData | null>(null);
+  const [decision, setDecision] = useState<'approve' | 'reject'>('approve');
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [approvalRemarks, setApprovalRemarks] = useState('');
-  const [rejectionRemarks, setRejectionRemarks] = useState('');
-  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (actualPermitId) {
-      fetchPermit();
-    }
-  }, [actualPermitId]);
+    // Mock data for demonstration
+    const mockPermit: PermitApprovalData = {
+      id: parseInt(id || '0'),
+      permitNumber: `PER-20250101-${(id || '0').padStart(4, '0')}`,
+      title: 'Hot Work Permit - Welding Area A',
+      permitType: 'Hot Work',
+      status: 'Pending',
+      requestedByUserName: 'John Smith',
+      workLocation: 'Production Floor A',
+      startDate: '2025-01-15',
+      endDate: '2025-01-16',
+    };
 
-  const fetchPermit = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch(`/api/permits/${actualPermitId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch permit');
-      }
-      
-      const result = await response.json();
-      setPermit(result.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setPermit(mockPermit);
+    setLoading(false);
+  }, [id]);
 
-  const handleApprove = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!permit) return;
 
-    try {
-      setApproving(true);
-      
-      const response = await fetch(`/api/permits/${permit.id}/approve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'approve',
-          remarks: approvalRemarks
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to approve permit');
-      }
-      
-      const result = await response.json();
-      setPermit(result.data);
-      setShowApprovalDialog(false);
-      setApprovalRemarks('');
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to approve permit');
-    } finally {
-      setApproving(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!permit) return;
-
-    try {
-      setApproving(true);
-      
-      const response = await fetch(`/api/permits/${permit.id}/approve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'reject',
-          remarks: rejectionRemarks
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to reject permit');
-      }
-      
-      const result = await response.json();
-      setPermit(result.data);
-      setShowRejectionDialog(false);
-      setRejectionRemarks('');
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject permit');
-    } finally {
-      setApproving(false);
-    }
-  };
-
-  const getStatusColor = (status: PermitStatus) => {
-    switch (status) {
-      case PermitStatus.DRAFT:
-        return 'default';
-      case PermitStatus.PENDING_APPROVAL:
-        return 'warning';
-      case PermitStatus.APPROVED:
-        return 'success';
-      case PermitStatus.ACTIVE:
-        return 'info';
-      case PermitStatus.COMPLETED:
-        return 'success';
-      case PermitStatus.CANCELLED:
-      case PermitStatus.EXPIRED:
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const getPermitTypeColor = (type: PermitType) => {
-    switch (type) {
-      case PermitType.HOT_WORK:
-        return 'error';
-      case PermitType.CONFINED_SPACE:
-        return 'warning';
-      case PermitType.HEIGHT_WORK:
-        return 'info';
-      case PermitType.ELECTRICAL_WORK:
-        return 'secondary';
-      case PermitType.EXCAVATION:
-        return 'primary';
-      case PermitType.CHEMICAL_HANDLING:
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const getApprovalSteps = () => [
-    'Risk Assessment Review',
-    'Safety Measures Verification',
-    'Authorization Check',
-    'Final Approval'
-  ];
-
-  const getCurrentStep = () => {
-    if (!permit) return 0;
+    setSubmitting(true);
     
-    switch (permit.status) {
-      case PermitStatus.DRAFT:
-        return 0;
-      case PermitStatus.PENDING_APPROVAL:
-        return 1;
-      case PermitStatus.APPROVED:
-        return 4;
-      default:
-        return 0;
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Permit approval decision:', {
+        permitId: permit.id,
+        decision,
+        notes,
+      });
+
+      // Navigate back to permit details
+      navigate(`/permits/${permit.id}`);
+    } catch (error) {
+      console.error('Error submitting approval:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box p={3}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button variant="contained" onClick={fetchPermit}>
-          Retry
-        </Button>
-      </Box>
-    );
+    return <Box display="flex" justifyContent="center" p={3}>Loading...</Box>;
   }
 
   if (!permit) {
-    return (
-      <Box p={3}>
-        <Alert severity="warning">
-          Permit not found
-        </Alert>
-      </Box>
-    );
+    return <Box textAlign="center" p={3}>Permit not found</Box>;
   }
-
-  const canApprove = permit.status === PermitStatus.PENDING_APPROVAL;
 
   return (
     <Box p={3}>
-      <Box mb={3} display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4" gutterBottom>
+      <Box display="flex" alignItems="center" mb={3}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(`/permits/${permit.id}`)}
+          sx={{ mr: 2 }}
+        >
+          Back to Details
+        </Button>
+        <Typography variant="h4" component="h1">
           Permit Approval
         </Typography>
-        <Button variant="outlined" onClick={() => navigate('/permits')}>
-          Back to Permits
-        </Button>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
       <Grid container spacing={3}>
-        {/* Permit Details */}
-        <Grid size ={{xs: 12, md:8}}>
-          <Card>
+        <Grid size ={{xs: 12, md:6}}>
+          <Card sx={{ mb: 3 }}>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                <Typography variant="h6" gutterBottom>
-                  Permit Details
-                </Typography>
-                <Box display="flex" gap={1}>
-                  <Chip 
-                    label={permit.type.replace('_', ' ')} 
-                    color={getPermitTypeColor(permit.type)}
-                    size="small"
-                  />
-                  <Chip 
-                    label={permit.status.replace('_', ' ')} 
-                    color={getStatusColor(permit.status)}
-                    size="small"
-                  />
-                </Box>
-              </Box>
+              <Typography variant="h6" color="primary" gutterBottom>
+                {permit.permitNumber}
+              </Typography>
+              
+              <Typography variant="h5" gutterBottom>
+                {permit.title}
+              </Typography>
 
-              <Grid container spacing={2}>
-                <Grid size ={{xs: 12, sm:6}}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Permit Number
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid size ={{xs:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Type
                   </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {permit.permitNumber}
+                  <Typography variant="body1">
+                    {permit.permitType || 'General'}
                   </Typography>
                 </Grid>
-
-                <Grid size ={{xs: 12, sm:6}}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Title
+                <Grid size ={{xs:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Status
                   </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {permit.title}
+                  <Chip label={permit.status} color="warning" size="small" />
+                </Grid>
+                <Grid size ={{xs:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Requested By
+                  </Typography>
+                  <Typography variant="body1">
+                    {permit.requestedByUserName}
                   </Typography>
                 </Grid>
-
-                <Grid size ={{xs:12}}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Description
+                <Grid size ={{xs:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Work Location
                   </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {permit.description}
-                  </Typography>
-                </Grid>
-
-                <Grid size ={{xs: 12, sm:6}}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Valid From
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {format(new Date(permit.validFrom), 'PPP p')}
+                  <Typography variant="body1">
+                    {permit.workLocation || 'Not specified'}
                   </Typography>
                 </Grid>
-
-                <Grid size ={{xs: 12, sm:6}}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Valid To
+                <Grid size ={{xs:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    Start Date
                   </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {format(new Date(permit.validTo), 'PPP p')}
+                  <Typography variant="body1">
+                    {new Date(permit.startDate).toLocaleDateString()}
                   </Typography>
                 </Grid>
-
-                <Grid size ={{xs:12}}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Location
+                <Grid size ={{xs:6}}>
+                  <Typography variant="body2" color="textSecondary">
+                    End Date
                   </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {permit.location}
+                  <Typography variant="body1">
+                    {new Date(permit.endDate).toLocaleDateString()}
                   </Typography>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
-
-          {/* Risk Assessment */}
-          <Card sx={{ mt: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Risk Assessment
-              </Typography>
-              <Typography variant="body1">
-                {permit.riskAssessment}
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* Safety Measures */}
-          <Card sx={{ mt: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                <CheckCircleIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Safety Measures
-              </Typography>
-              <List>
-                {permit.safetyMeasures.map((measure, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <WarningIcon color="warning" />
-                    </ListItemIcon>
-                    <ListItemText primary={measure} />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
         </Grid>
 
-        {/* Approval Panel */}
-        <Grid size ={{xs: 12, md:4}}>
+        <Grid size ={{xs: 12, md:6}}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Approval Status
+                Approval Decision
               </Typography>
 
-              <Stepper orientation="vertical" activeStep={getCurrentStep()}>
-                {getApprovalSteps().map((label, index) => (
-                  <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
-                  </Step>
-                ))}
-              </Stepper>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box display="flex" alignItems="center" mb={2}>
-                <PersonIcon sx={{ mr: 1 }} />
-                <Typography variant="subtitle2">
-                  Requested by: {permit.requester?.firstName} {permit.requester?.lastName}
-                </Typography>
-              </Box>
-
-              <Box display="flex" alignItems="center" mb={2}>
-                <ScheduleIcon sx={{ mr: 1 }} />
-                <Typography variant="subtitle2">
-                  Requested on: {format(new Date(permit.createdAt), 'PPP')}
-                </Typography>
-              </Box>
-
-              {canApprove && (
-                <Box mt={3}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    fullWidth
-                    onClick={() => setShowApprovalDialog(true)}
-                    disabled={approving}
-                    sx={{ mb: 1 }}
+              <form onSubmit={handleSubmit}>
+                <FormControl component="fieldset" sx={{ mb: 3 }}>
+                  <FormLabel component="legend">Decision</FormLabel>
+                  <RadioGroup
+                    value={decision}
+                    onChange={(e) => setDecision(e.target.value as 'approve' | 'reject')}
                   >
-                    Approve Permit
-                  </Button>
+                    <FormControlLabel 
+                      value="approve" 
+                      control={<Radio />} 
+                      label="Approve Permit" 
+                    />
+                    <FormControlLabel 
+                      value="reject" 
+                      control={<Radio />} 
+                      label="Reject Permit" 
+                    />
+                  </RadioGroup>
+                </FormControl>
+
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label={decision === 'approve' ? 'Approval Notes' : 'Rejection Reason'}
+                  placeholder={
+                    decision === 'approve' 
+                      ? 'Enter any approval notes or conditions...'
+                      : 'Please explain the reason for rejection...'
+                  }
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  sx={{ mb: 3 }}
+                  required={decision === 'reject'}
+                />
+
+                {decision === 'reject' && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    Please provide a clear reason for rejection to help the requestor understand what needs to be addressed.
+                  </Alert>
+                )}
+
+                <Box display="flex" gap={2}>
                   <Button
+                    type="submit"
                     variant="contained"
-                    color="error"
+                    color={decision === 'approve' ? 'success' : 'error'}
+                    startIcon={decision === 'approve' ? <CheckCircleIcon /> : <CancelIcon />}
+                    disabled={submitting}
                     fullWidth
-                    onClick={() => setShowRejectionDialog(true)}
-                    disabled={approving}
                   >
-                    Reject Permit
+                    {submitting 
+                      ? 'Processing...' 
+                      : decision === 'approve' 
+                        ? 'Approve Permit' 
+                        : 'Reject Permit'
+                    }
                   </Button>
                 </Box>
-              )}
-
-              {permit.status === PermitStatus.APPROVED && (
-                <Alert severity="success" sx={{ mt: 2 }}>
-                  This permit has been approved
-                </Alert>
-              )}
+              </form>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-
-      {/* Approval Dialog */}
-      <Dialog open={showApprovalDialog} onClose={() => setShowApprovalDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Approve Permit</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" gutterBottom>
-            Are you sure you want to approve this permit?
-          </Typography>
-          <TextField
-            multiline
-            rows={3}
-            fullWidth
-            label="Approval Remarks (Optional)"
-            value={approvalRemarks}
-            onChange={(e) => setApprovalRemarks(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowApprovalDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleApprove} 
-            variant="contained" 
-            color="success"
-            disabled={approving}
-          >
-            {approving ? <CircularProgress size={20} /> : 'Approve'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Rejection Dialog */}
-      <Dialog open={showRejectionDialog} onClose={() => setShowRejectionDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Reject Permit</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" gutterBottom>
-            Please provide a reason for rejecting this permit:
-          </Typography>
-          <TextField
-            multiline
-            rows={3}
-            fullWidth
-            label="Rejection Reason"
-            value={rejectionRemarks}
-            onChange={(e) => setRejectionRemarks(e.target.value)}
-            required
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowRejectionDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleReject} 
-            variant="contained" 
-            color="error"
-            disabled={approving || !rejectionRemarks.trim()}
-          >
-            {approving ? <CircularProgress size={20} /> : 'Reject'}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

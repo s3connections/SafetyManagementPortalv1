@@ -1,31 +1,41 @@
+using Microsoft.EntityFrameworkCore;
+using Backend.Data;
 using Backend.Services.Interfaces;
 using Backend.Services.Implementations;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Extensions
 {
-    /// <summary>
-    /// Registers every domain-service in one call.
-    /// </summary>
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // INCIDENT
-            services.AddScoped<IIncidentObservationService, IncidentObservationService>();
-            services.AddScoped<IIncidentInvestigationService, IncidentInvestigationService>();
+            // Add Entity Framework
+            services.AddDbContext<SafetyDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // AUDIT & PERMIT
+            // Add AutoMapper
+            services.AddAutoMapper(typeof(Program));
+
+            // Register services
+            services.AddScoped<IObservationService, ObservationService>();
             services.AddScoped<IAuditService, AuditService>();
             services.AddScoped<IPermitService, PermitService>();
 
-            // MASTER DATA & EMPLOYEE
-            services.AddScoped<IMasterDataService, MasterDataService>();
-            services.AddScoped<IEmployeeService, EmployeeService>();
+            return services;
+        }
 
-            // INFRASTRUCTURE
-            services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<IWorkflowService,    WorkflowService>();
+        public static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
 
             return services;
         }

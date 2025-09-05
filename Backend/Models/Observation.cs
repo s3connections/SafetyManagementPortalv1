@@ -1,109 +1,77 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Backend.Models.Entities
+namespace Backend.Models
 {
     public enum ObservationType
     {
-        Unsafe_Act,
-        Unsafe_Condition,
-        Work_Stoppage,
-        Near_Miss,
-        Good_Practice
+        Safety,
+        Environmental,
+        Quality,
+        Security,
+        Other
     }
+
+  
 
     public enum ObservationStatus
     {
         Open,
-        Re_Assigned,
-        Unsatisfied,
+        InProgress,
+        Resolved,
         Closed,
-        Wrongly_Assigned
+        Cancelled
     }
 
-    public enum ObservationStage
+    public class Observation : BaseEntity
     {
-        Open,
-        In_Progress,
-        Closed,
-        Re_opened
-    }
-
-    public enum Priority
-    {
-        High,
-        Medium,
-        Low
-    }
-
-    public class Observation
-    {
-        [Key]
-        public int Id { get; set; }
+        [Required]
+        [MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(50)]
-        public string TicketNumber { get; set; } = string.Empty;
+        [MaxLength(2000)]
+        public string Description { get; set; } = string.Empty;
 
         [Required]
         public ObservationType ObservationType { get; set; }
 
-        [StringLength(100)]
-        public string? HazardType { get; set; }
-
-        [Required]
-        public Priority Priority { get; set; } = Priority.Medium;
-
-        [Required]
-        public ObservationStage Stage { get; set; } = ObservationStage.Open;
-
         [Required]
         public ObservationStatus Status { get; set; } = ObservationStatus.Open;
 
-        [Required]
-        [StringLength(2000)]
-        public string Description { get; set; } = string.Empty;
+        [MaxLength(100)]
+        public string? Location { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        public string Location { get; set; } = string.Empty;
+        [MaxLength(50)]
+        public string TicketNumber { get; set; } = string.Empty;
 
-        [Required]
-        public int PlantId { get; set; }
+        public DateTime? DueDate { get; set; }
 
-        [Required]
-        public int DepartmentId { get; set; }
+        public DateTime? CompletedDate { get; set; }
 
-        [Required]
-        public int ReportedBy { get; set; }
+        [MaxLength(1000)]
+        public string? ResolutionNotes { get; set; }
 
-        public int? AssignedTo { get; set; }
+        [MaxLength(500)]
+        public string? ImagePath { get; set; }
 
-        public string? ObservationImages { get; set; } // JSON array of image paths
-
-        public string? ResolutionImages { get; set; } // JSON array of image paths
-
-        [StringLength(2000)]
-        public string? ResolutionRemarks { get; set; }
-
-        public DateTime? SlaDeadline { get; set; }
-
-        public bool IsActive { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        // Foreign Keys
+        public int ReportedByUserId { get; set; }
+        public int? AssignedToUserId { get; set; }
+        public int? PlantId { get; set; }
+        public int? DepartmentId { get; set; }
 
         // Navigation Properties
-        [ForeignKey("PlantId")]
-        public virtual Plant Plant { get; set; } = null!;
+        [ForeignKey(nameof(ReportedByUserId))]
+        public virtual User ReportedByUser { get; set; } = null!;
 
-        [ForeignKey("DepartmentId")]
-        public virtual Department Department { get; set; } = null!;
+        [ForeignKey(nameof(AssignedToUserId))]
+        public virtual User? AssignedToUser { get; set; }
 
-        [ForeignKey("ReportedBy")]
-        public virtual User Reporter { get; set; } = null!;
+        [ForeignKey(nameof(PlantId))]
+        public virtual Plant? Plant { get; set; }
 
-        [ForeignKey("AssignedTo")]
-        public virtual User? AssignedUser { get; set; }
+        [ForeignKey(nameof(DepartmentId))]
+        public virtual Department? Department { get; set; }
     }
 }

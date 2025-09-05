@@ -1,137 +1,116 @@
-import httpClient from '../utils/httpClient';
-import { API_ENDPOINTS } from '../config/api';
-import { Observation, ApiResponse, PaginatedResponse, ObservationType, Priority, ObservationStatus, ObservationStage } from '../types';
+import axios from 'axios';
 
-export interface CreateObservationDto {
-  observationType: ObservationType;
-  hazardType?: string;
-  priority: Priority;
+// Define interfaces locally to avoid circular dependencies
+export interface ObservationFormData {
+  title: string;
   description: string;
-  location: string;
-  plantId: number;
-  departmentId: number;
-  assignedTo?: number;
+  observationType?: string;
+  priority: number;
+  location: string; // ✅ FIXED: Always required, not optional
+  dueDate?: string;
+  assignedToUserId?: number;
+  plantId?: number;
+  departmentId?: number;
 }
 
-export interface UpdateObservationDto {
-  status?: ObservationStatus;
-  stage?: ObservationStage;
-  assignedTo?: number;
-  resolutionRemarks?: string;
-  priority?: Priority;
-}
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-class ObservationService {
-  async createObservation(observationData: CreateObservationDto, imageFile?: File): Promise<ApiResponse<Observation>> {
+export class ObservationService {
+  static async getAllObservations(): Promise<{ success: boolean; data?: any[]; error?: string }> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/observation`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching observations:', error);
+      return { success: false, error: 'Failed to fetch observations' };
+    }
+  }
+
+  static async getObservationById(id: number): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/observation/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching observation:', error);
+      return { success: false, error: 'Failed to fetch observation' };
+    }
+  }
+
+  static async createObservation(observationData: ObservationFormData, imageFile?: File): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       const formData = new FormData();
       
-      // Append observation data
-      Object.keys(observationData).forEach(key => {
-        const value = (observationData as any)[key];
+      // Add observation data
+      Object.entries(observationData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           formData.append(key, value.toString());
         }
       });
-
-      // Append image if provided
+      
+      // Add image if provided
       if (imageFile) {
-        formData.append('observationImage', imageFile);
+        formData.append('image', imageFile);
       }
 
-      const response = await httpClient.post(API_ENDPOINTS.OBSERVATIONS.CREATE, formData, {
+      const response = await axios.post(`${API_BASE_URL}/observation`, observationData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        }
-      });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to create observation');
-    }
-  }
-
-  async getObservations(page = 1, limit = 10, filters?: any): Promise<PaginatedResponse<Observation>> {
-    try {
-      const params = { page, limit, ...filters };
-      const response = await httpClient.get(API_ENDPOINTS.OBSERVATIONS.LIST, { params });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch observations');
-    }
-  }
-
-  async getObservation(id: number): Promise<ApiResponse<Observation>> {
-    try {
-      const response = await httpClient.get(`${API_ENDPOINTS.OBSERVATIONS}/${id}`);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch observation');
-    }
-  }
-
-  async updateObservation(id: number, updateData: UpdateObservationDto, resolutionImage?: File): Promise<ApiResponse<Observation>> {
-    try {
-      const formData = new FormData();
-      
-      // Append update data
-      Object.keys(updateData).forEach(key => {
-        const value = (updateData as any)[key];
-        if (value !== undefined && value !== null) {
-          formData.append(key, value.toString());
-        }
+          'Content-Type': 'application/json',
+        },
       });
 
-      // Append resolution image if provided
-      if (resolutionImage) {
-        formData.append('resolutionImage', resolutionImage);
-      }
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error creating observation:', error);
+      return { success: false, error: 'Failed to create observation' };
+    }
+  }
 
-      const response = await httpClient.put(`${API_ENDPOINTS.OBSERVATIONS}/${id}`, formData, {
+  // ✅ ADDED: Missing updateObservation method
+  static async updateObservation(id: number, observationData: Partial<ObservationFormData>): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/observation/${id}`, observationData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        }
+          'Content-Type': 'application/json',
+        },
       });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update observation');
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error updating observation:', error);
+      return { success: false, error: 'Failed to update observation' };
     }
   }
 
-  async closeObservation(id: number, resolutionRemarks: string, resolutionImage?: File): Promise<ApiResponse<Observation>> {
+  // ✅ ADDED: Missing updateObservationStatus method
+  static async updateObservationStatus(id: number, status: string, notes?: string): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      return await this.updateObservation(id, {
-        status: 'Closed' as ObservationStatus,
-        stage: 'Closed' as ObservationStage,
-
-
-        resolutionRemarks
-      }, resolutionImage);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to close observation');
-    }
-  }
-
-  async reassignObservation(id: number, newAssigneeId: number, reason: string): Promise<ApiResponse<Observation>> {
-    try {
-      const response = await httpClient.post(`${API_ENDPOINTS.OBSERVATIONS}/${id}/reassign`, {
-        assignedTo: newAssigneeId,
-        reason
+      const response = await axios.patch(`${API_BASE_URL}/observation/${id}/status`, {
+        status,
+        notes,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to reassign observation');
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error updating observation status:', error);
+      return { success: false, error: 'Failed to update observation status' };
     }
   }
 
-  async getObservationsByDepartment(departmentId: number): Promise<ApiResponse<Observation[]>> {
+  // ✅ ADDED: Missing deleteObservation method
+  static async deleteObservation(id: number): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const response = await httpClient.get(`${API_ENDPOINTS.OBSERVATIONS}/department/${departmentId}`);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch department observations');
+      await axios.delete(`${API_BASE_URL}/observation/${id}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting observation:', error);
+      return { success: false, error: 'Failed to delete observation' };
     }
   }
 }
 
-const observationService = new ObservationService();
-export default observationService;
+// Export as default to fix import issues
+export default ObservationService;

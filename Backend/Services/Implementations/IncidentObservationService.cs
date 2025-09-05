@@ -1,127 +1,181 @@
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using Backend.Data;
-using Backend.DTOs.Common;
-using Backend.DTOs.Incident;
 using Backend.Models;
 using Backend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Backend.DTOs.Incident;
 
 namespace Backend.Services.Implementations
 {
     public class IncidentObservationService : BaseService<IncidentObservation, IncidentObservationDto, CreateIncidentObservationDto, UpdateIncidentObservationDto>, IIncidentObservationService
     {
-        public IncidentObservationService(SafetyManagementContext context) : base(context) { }
-
-        public override async Task<PagedResult<IncidentObservationDto>> GetAllAsync(SearchFilter filter)
+        public IncidentObservationService(SafetyDbContext context, IMapper mapper) 
+            : base(context, mapper)
         {
-            var context = (SafetyManagementContext)_context;
-            var query = context.IncidentObservations
-                .Include(i => i.IncidentType)
-                .Include(i => i.Priority)
+        }
+
+        public override async Task<IEnumerable<IncidentObservationDto>> GetAllAsync()
+        {
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
                 .Include(i => i.Plant)
-                .Include(i => i.Location)
-                .Where(i => !i.IsDeleted);
+                .Include(i => i.Department)
+                .Where(i => i.IsActive)
+                .OrderByDescending(i => i.IncidentDate)
+                .ToListAsync();
 
-            if (!string.IsNullOrEmpty(filter.SearchTerm))
-                query = query.Where(i => i.Title.Contains(filter.SearchTerm) || i.IncidentNumber.Contains(filter.SearchTerm));
-
-            var total = await query.CountAsync();
-            var data = await query.Skip((filter.PageNumber - 1) * filter.PageSize)
-                                  .Take(filter.PageSize)
-                                  .Select(i => new IncidentObservationDto
-            {
-                Id = i.Id,
-                Title = i.Title,
-                IncidentNumber = i.IncidentNumber,
-                Description = i.Description,
-                DateTimeObserved = i.DateTimeObserved,
-                CreatedAt = i.CreatedAt
-            }).ToListAsync();
-
-            return new PagedResult<IncidentObservationDto>
-            {
-                Items = data,
-                TotalItems = total,
-                PageNumber = filter.PageNumber,
-                PageSize = filter.PageSize,
-                TotalPages = (int)Math.Ceiling((double)total / filter.PageSize)
-            };
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
         }
 
-        public override async Task<IncidentObservationDto> GetByIdAsync(int id)
+        public override async Task<IncidentObservationDto?> GetByIdAsync(int id)
         {
-            var context = (SafetyManagementContext)_context;
-            var i = await context.IncidentObservations.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-            if (i == null) return null;
-            return new IncidentObservationDto { Id = i.Id, Title = i.Title, IncidentNumber = i.IncidentNumber, Description = i.Description };
+            var incident = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .FirstOrDefaultAsync(i => i.Id == id && i.IsActive);
+
+            return incident == null ? null : _mapper.Map<IncidentObservationDto>(incident);
         }
 
-        public override async Task<IncidentObservationDto> CreateAsync(CreateIncidentObservationDto dto)
+        public async Task<IEnumerable<IncidentObservationDto>> GetByUserIdAsync(int userId)
         {
-            var context = (SafetyManagementContext)_context;
-            var number = await GenerateIncidentNumberAsync();
-            var entity = new IncidentObservation
-            {
-                Title = dto.Title,
-                IncidentNumber = number,
-                Description = dto.Description,
-                IncidentTypeId = dto.IncidentTypeId,
-                PriorityId = dto.PriorityId,
-                PlantId = dto.PlantId,
-                LocationId = dto.LocationId,
-                DateTimeObserved = dto.DateTimeObserved,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = 1
-            };
-            context.IncidentObservations.Add(entity);
-            await context.SaveChangesAsync();
-            return new IncidentObservationDto { Id = entity.Id, IncidentNumber = entity.IncidentNumber, Title = entity.Title };
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .Where(i => i.IsActive && (i.ReportedByUserId == userId || i.InvestigatedByUserId == userId))
+                .OrderByDescending(i => i.IncidentDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
         }
 
-        public override async Task<IncidentObservationDto> UpdateAsync(int id, UpdateIncidentObservationDto dto)
+        public async Task<IEnumerable<IncidentObservationDto>> GetBySeverityAsync(IncidentSeverity severity)
         {
-            var context = (SafetyManagementContext)_context;
-            var entity = await context.IncidentObservations.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-            if (entity == null) return null;
-            if (!string.IsNullOrEmpty(dto.Title)) entity.Title = dto.Title;
-            if (!string.IsNullOrEmpty(dto.Description)) entity.Description = dto.Description;
-            entity.UpdatedAt = DateTime.UtcNow;
-            entity.UpdatedBy = 1;
-            await context.SaveChangesAsync();
-            return new IncidentObservationDto { Id = entity.Id, Title = entity.Title, IncidentNumber = entity.IncidentNumber };
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .Where(i => i.IsActive && i.Severity == severity)
+                .OrderByDescending(i => i.IncidentDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
+        }
+
+        public async Task<IEnumerable<IncidentObservationDto>> GetByTypeAsync(IncidentType type)
+        {
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .Where(i => i.IsActive && i.IncidentType == type)
+                .OrderByDescending(i => i.IncidentDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
+        }
+
+        public async Task<IEnumerable<IncidentObservationDto>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .Where(i => i.IsActive && i.IncidentDate >= startDate && i.IncidentDate <= endDate)
+                .OrderByDescending(i => i.IncidentDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
         }
 
         public async Task<string> GenerateIncidentNumberAsync()
         {
-            var context = (SafetyManagementContext)_context;
-            var year = DateTime.Now.Year;
-            var count = await context.IncidentObservations.CountAsync(i => i.CreatedAt.Year == year);
-            return $"INC-{year}-{(count + 1):D6}";
+            var today = DateTime.Today;
+            var prefix = $"INC-{today:yyyyMMdd}";
+            
+            var lastIncident = await _dbSet
+                .Where(i => i.IncidentNumber.StartsWith(prefix))
+                .OrderByDescending(i => i.IncidentNumber)
+                .FirstOrDefaultAsync();
+
+            var sequence = 1;
+            if (lastIncident != null && lastIncident.IncidentNumber.Length > prefix.Length)
+            {
+                var lastSequence = lastIncident.IncidentNumber.Substring(prefix.Length + 1);
+                if (int.TryParse(lastSequence, out var lastSeq))
+                {
+                    sequence = lastSeq + 1;
+                }
+            }
+
+            return $"{prefix}-{sequence:D4}";
         }
 
-        public async Task<List<IncidentObservationDto>> GetByPlantAsync(int plantId)
+        public override async Task<IncidentObservationDto> CreateAsync(CreateIncidentObservationDto createDto)
         {
-            var context = (SafetyManagementContext)_context;
-            return await context.IncidentObservations.Where(i => i.PlantId == plantId && !i.IsDeleted)
-                .Select(i => new IncidentObservationDto { Id = i.Id, Title = i.Title, IncidentNumber = i.IncidentNumber }).ToListAsync();
+            var entity = _mapper.Map<IncidentObservation>(createDto);
+            entity.IncidentNumber = await GenerateIncidentNumberAsync();
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _dbSet.Add(entity);
+            await _context.SaveChangesAsync();
+
+            return await GetByIdAsync(entity.Id) ?? _mapper.Map<IncidentObservationDto>(entity);
         }
 
-        public async Task<List<IncidentObservationDto>> GetByStatusAsync(int statusId)
+        public async Task<IncidentObservationDto?> UpdateInvestigationStatusAsync(int id, int investigatedByUserId, string? findings = null)
         {
-            var context = (SafetyManagementContext)_context;
-            return await context.IncidentObservations.Where(i => i.StatusId == statusId && !i.IsDeleted)
-                .Select(i => new IncidentObservationDto { Id = i.Id, Title = i.Title, IncidentNumber = i.IncidentNumber }).ToListAsync();
+            var incident = await _dbSet.FirstOrDefaultAsync(i => i.Id == id && i.IsActive);
+            if (incident == null) return null;
+
+            incident.InvestigatedByUserId = investigatedByUserId;
+            incident.InvestigationCompletedDate = DateTime.UtcNow;
+            incident.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrEmpty(findings))
+            {
+                incident.RootCauseAnalysis = findings;
+            }
+
+            await _context.SaveChangesAsync();
+            return await GetByIdAsync(id);
         }
 
-        public async Task<List<IncidentObservationDto>> GetOverdueIncidentsAsync()
+        public async Task<IEnumerable<IncidentObservationDto>> GetPendingInvestigationsAsync()
         {
-            var context = (SafetyManagementContext)_context;
-            var cutoff = DateTime.UtcNow.AddDays(-7);
-            return await context.IncidentObservations.Where(i => i.CreatedAt <= cutoff && !i.IsDeleted)
-                .Select(i => new IncidentObservationDto { Id = i.Id, Title = i.Title, IncidentNumber = i.IncidentNumber }).ToListAsync();
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .Where(i => i.IsActive && i.InvestigationCompletedDate == null)
+                .OrderBy(i => i.IncidentDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
+        }
+
+        public async Task<IEnumerable<IncidentObservationDto>> GetRequiringReportingAsync()
+        {
+            var incidents = await _dbSet
+                .Include(i => i.ReportedByUser)
+                .Include(i => i.InvestigatedByUser)
+                .Include(i => i.Plant)
+                .Include(i => i.Department)
+                .Where(i => i.IsActive && i.RequiresReporting && !i.IsReportedToAuthorities)
+                .OrderBy(i => i.IncidentDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<IncidentObservationDto>>(incidents);
         }
     }
 }

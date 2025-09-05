@@ -59,7 +59,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-  
+
   // Filters
   const [filters, setFilters] = useState({
     status: '',
@@ -77,20 +77,32 @@ const ObservationList: React.FC<ObservationListProps> = ({
       setLoading(true);
       setError(null);
       
-      const response = await ObservationService.getObservations(
-        page + 1, 
-        rowsPerPage, 
-        {
-          status: filters.status || undefined,
-          priority: filters.priority || undefined,
-          plantId: filters.plantId ? parseInt(filters.plantId) : undefined,
-          departmentId: filters.departmentId ? parseInt(filters.departmentId) : undefined
-        }
-      );
+      // ✅ FIXED: Use getAllObservations instead of getObservations
+      const response = await ObservationService.getAllObservations();
 
-      if (response.success) {
-        setObservations(response.data);
-        setTotalCount(response.totalCount);
+      if (response.success && response.data) {
+        const allObservations = response.data;
+        
+        // Apply filters on client side (since API doesn't support pagination/filtering yet)
+        let filteredObservations = allObservations;
+        
+        if (filters.status) {
+          filteredObservations = filteredObservations.filter(obs => obs.status === filters.status);
+        }
+        if (filters.priority) {
+          filteredObservations = filteredObservations.filter(obs => obs.priority === filters.priority);
+        }
+        if (filters.observationType) {
+          filteredObservations = filteredObservations.filter(obs => obs.observationType === filters.observationType);
+        }
+        
+        // Pagination on client side
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const paginatedObservations = filteredObservations.slice(startIndex, endIndex);
+        
+        setObservations(paginatedObservations);
+        setTotalCount(filteredObservations.length);
       } else {
         setError('Failed to load observations');
       }
@@ -155,26 +167,27 @@ const ObservationList: React.FC<ObservationListProps> = ({
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" action={
-          <Button color="inherit" size="small" onClick={loadObservations}>
+      <Alert 
+        severity="error" 
+        action={
+          <Button color="inherit" size="small" onClick={loadObservations} disabled={loading}>
             Retry
           </Button>
-        }>
-          {error}
-        </Alert>
-      </Box>
+        }
+      >
+        {error}
+      </Alert>
     );
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box p={3}>
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" component="h1" gutterBottom>
           Safety Observations
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box display="flex" gap={1}>
           <Button
             variant="outlined"
             startIcon={<RefreshIcon />}
@@ -210,7 +223,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
       </Box>
 
       {/* Statistics Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={3} mb={3}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
@@ -229,7 +242,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
               <Typography color="textSecondary" gutterBottom>
                 Open
               </Typography>
-              <Typography variant="h4" color="primary">
+              <Typography variant="h4">
                 {observations.filter(o => o.status === 'Open').length}
               </Typography>
             </CardContent>
@@ -241,7 +254,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
               <Typography color="textSecondary" gutterBottom>
                 High Priority
               </Typography>
-              <Typography variant="h4" color="error">
+              <Typography variant="h4">
                 {observations.filter(o => o.priority === 'High').length}
               </Typography>
             </CardContent>
@@ -253,7 +266,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
               <Typography color="textSecondary" gutterBottom>
                 Overdue
               </Typography>
-              <Typography variant="h4" color="warning.main">
+              <Typography variant="h4">
                 {observations.filter(o => o.slaDeadline && new Date(o.slaDeadline) < new Date()).length}
               </Typography>
             </CardContent>
@@ -262,9 +275,9 @@ const ObservationList: React.FC<ObservationListProps> = ({
       </Grid>
 
       {/* Data Table */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
+      <Paper>
+        <TableContainer>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Ticket #</TableCell>
@@ -277,19 +290,19 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 <TableCell>Assigned To</TableCell>
                 <TableCell>Created Date</TableCell>
                 <TableCell>SLA Deadline</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={11} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : observations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={11} align="center">
                     <Typography variant="body1" color="textSecondary">
                       No observations found
                     </Typography>
@@ -297,22 +310,22 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </TableRow>
               ) : (
                 observations.map((observation) => (
-                  <TableRow key={observation.id} hover>
+                  <TableRow key={observation.id}>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      <Typography variant="body2" color="primary">
                         {observation.ticketNumber}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={observation.observationType.replace('_', ' ')} 
+                        label={observation.observationType} 
                         size="small" 
-                        variant="outlined" 
+                        variant="outlined"
                       />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: 200 }}>
-                        {observation.description.length > 100 
+                      <Typography variant="body2">
+                        {observation.description.length > 100
                           ? `${observation.description.substring(0, 100)}...`
                           : observation.description
                         }
@@ -321,14 +334,14 @@ const ObservationList: React.FC<ObservationListProps> = ({
                     <TableCell>
                       <Chip 
                         label={observation.priority} 
-                        color={getPriorityColor(observation.priority)}
+                        color={getPriorityColor(observation.priority)} 
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={observation.status.replace('_', ' ')} 
-                        color={getStatusColor(observation.status)}
+                        label={observation.status} 
+                        color={getStatusColor(observation.status)} 
                         size="small"
                       />
                     </TableCell>
@@ -344,44 +357,34 @@ const ObservationList: React.FC<ObservationListProps> = ({
                     </TableCell>
                     <TableCell>
                       {observation.slaDeadline ? (
-                        <Typography 
-                          variant="body2" 
-                          color={new Date(observation.slaDeadline) < new Date() ? 'error' : 'textPrimary'}
-                        >
+                        <Typography variant="body2">
                           {format(new Date(observation.slaDeadline), 'MMM dd, yyyy')}
                         </Typography>
                       ) : '-'}
                     </TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {onViewObservation && (
-                          <Tooltip title="View Details">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => onViewObservation(observation)}
-                              color="primary"
-                            >
-                              <ViewIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {onEditObservation && (
-                          <Tooltip title="Edit Observation">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => onEditObservation(observation)}
-                              color="secondary"
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        <Tooltip title="Reassign">
-                          <IconButton size="small" color="info">
-                            <AssignIcon />
+                    <TableCell>
+                      {onViewObservation && (
+                        <Tooltip title="View Details">
+                          <IconButton
+                            size="small"
+                            onClick={() => onViewObservation(observation)}
+                            color="primary"
+                          >
+                            <ViewIcon />
                           </IconButton>
                         </Tooltip>
-                      </Box>
+                      )}
+                      {onEditObservation && (
+                        <Tooltip title="Edit">
+                          <IconButton
+                            size="small"
+                            onClick={() => onEditObservation(observation)}
+                            color="secondary"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -389,8 +392,9 @@ const ObservationList: React.FC<ObservationListProps> = ({
             </TableBody>
           </Table>
         </TableContainer>
+        
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={totalCount}
           rowsPerPage={rowsPerPage}
@@ -405,13 +409,13 @@ const ObservationList: React.FC<ObservationListProps> = ({
         <DialogTitle>Filter Observations</DialogTitle>
         <DialogContent>
           <Grid container spacing={3} sx={{ mt: 1 }}>
-            <Grid size ={{xs: 12, sm:6}}>
+            <Grid size={{ xs: 12, sm: 6}}>
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
                   value={filters.status}
-                  label="Status"
                   onChange={(e) => handleFilterChange('status', e.target.value)}
+                  label="Status"
                 >
                   <MenuItem value="">All Statuses</MenuItem>
                   <MenuItem value="Open">Open</MenuItem>
@@ -422,13 +426,13 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size ={{xs: 12, sm:6}}>
+            <Grid size={{ xs: 12, sm: 6}}>
               <FormControl fullWidth>
                 <InputLabel>Priority</InputLabel>
                 <Select
                   value={filters.priority}
-                  label="Priority"
                   onChange={(e) => handleFilterChange('priority', e.target.value)}
+                  label="Priority"
                 >
                   <MenuItem value="">All Priorities</MenuItem>
                   <MenuItem value="High">High</MenuItem>
@@ -437,13 +441,13 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size ={{xs: 12, sm:6}}>
+            <Grid size={{ xs: 12, sm: 6}}>
               <FormControl fullWidth>
                 <InputLabel>Observation Type</InputLabel>
                 <Select
                   value={filters.observationType}
-                  label="Observation Type"
                   onChange={(e) => handleFilterChange('observationType', e.target.value)}
+                  label="Observation Type"
                 >
                   <MenuItem value="">All Types</MenuItem>
                   <MenuItem value="Unsafe_Act">Unsafe Act</MenuItem>
@@ -454,7 +458,7 @@ const ObservationList: React.FC<ObservationListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size ={{xs: 12, sm:6}}>
+            <Grid size={{ xs: 12, sm: 6}}>
               <TextField
                 fullWidth
                 label="Plant ID"

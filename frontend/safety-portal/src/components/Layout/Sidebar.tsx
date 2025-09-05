@@ -1,319 +1,228 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotification } from '../../contexts/NotificationContext';
-import { ROUTES, USER_ROLES, APP_CONFIG } from '../../constants';
+import { Link, useLocation } from 'react-router-dom';
+import { useAppSelector } from '../../store';
+import { APP_CONFIG } from '../../config/appConfig';
+import { USER_ROLES, getRoleColor } from '../../constants/userRoles';
+import { ROUTES } from '../../constants/routes';
 
-/// <reference types="react" />
-
-// Sidebar props interface
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-// Menu item interface
 interface MenuItem {
   name: string;
   path: string;
   icon: string;
   roles: string[];
+  badge?: number;
 }
 
-// Icon component
-const Icon: React.FC<{ name: string; className?: string }> = ({ name, className = "w-5 h-5" }) => {
-  const icons: Record<string, React.ReactElement> = {
-    dashboard: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-      </svg>
-    ),
-    observations: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-    audits: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-    ),
-    permits: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    users: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-      </svg>
-    ),
-    reports: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
+interface QuickAction {
+  name: string;
+  icon: string;
+  action: () => void;
+  adminOnly?: boolean;
+}
+
+const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const { user } = useAppSelector((state) => state.auth);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map((part) => part.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
-  return icons[name] || icons.dashboard;
-};
-
-// Helper function to get user initials
-const getInitials = (name: string): string => {
-  return name
-    .split(' ')
-    .map((n) => n)
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-};
-
-// Helper function to get role color
-const getRoleColor = (role: string): string => {
-  const colors = {
-    admin: 'bg-red-100 text-red-800',
-    manager: 'bg-blue-100 text-blue-800',
-    supervisor: 'bg-green-100 text-green-800',
-    employee: 'bg-gray-100 text-gray-800',
-    auditor: 'bg-purple-100 text-purple-800',
-    safety_officer: 'bg-orange-100 text-orange-800',
-  };
-  return colors[role as keyof typeof colors] || colors.employee;
-};
-
-// Menu items configuration
-const SIDEBAR_MENU_ITEMS: MenuItem[] = [
-  {
-    name: 'Dashboard',
-    path: ROUTES.DASHBOARD,
-    icon: 'dashboard',
-    roles: [],
-  },
-  {
-    name: 'Observations',
-    path: ROUTES.OBSERVATIONS,
-    icon: 'observations',
-    roles: [],
-  },
-  {
-    name: 'Audits',
-    path: ROUTES.AUDITS,
-    icon: 'audits',
-    roles: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.AUDITOR],
-  },
-  {
-    name: 'Permits',
-    path: ROUTES.PERMITS,
-    icon: 'permits',
-    roles: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.SUPERVISOR],
-  },
-  {
-    name: 'Users',
-    path: ROUTES.USERS,
-    icon: 'users',
-    roles: [USER_ROLES.ADMIN],
-  },
-];
-
-// Quick actions component
-const QuickActions: React.FC = () => {
-  const { user } = useAuth();
-  const { showSuccess } = useNotification();
-
-  const quickActions = [
+  // Updated menu items with correct role references
+  const menuItems: MenuItem[] = [
     {
-      name: 'New Observation',
-      onClick: () => showSuccess('Quick Action', 'New Observation form will open'),
-      adminOnly: false,
+      name: 'Dashboard',
+      path: ROUTES.DASHBOARD,
+      icon: 'dashboard',
+      roles: [], // Available to all authenticated users
     },
     {
-      name: 'Emergency Alert',
-      onClick: () => showSuccess('Alert', 'Emergency alert sent'),
-      adminOnly: true,
+      name: 'Observations',
+      path: ROUTES.OBSERVATIONS,
+      icon: 'observations',
+      roles: [], // Available to all authenticated users
+    },
+    {
+      name: 'Audits',
+      path: ROUTES.AUDITS,
+      icon: 'audits',
+      roles: [USER_ROLES.ADMIN, USER_ROLES.SAFETY_MANAGER, USER_ROLES.SAFETY_OFFICER],
+    },
+    {
+      name: 'Permits',
+      path: ROUTES.PERMITS,
+      icon: 'permits',
+      roles: [USER_ROLES.ADMIN, USER_ROLES.SAFETY_MANAGER, USER_ROLES.RESPONSIBLE_ENGINEER],
+    },
+    {
+      name: 'Users',
+      path: ROUTES.USERS,
+      icon: 'users',
+      roles: [USER_ROLES.ADMIN, USER_ROLES.SAFETY_MANAGER],
     },
   ];
 
-  if (!user) return null;
+  const quickActions: QuickAction[] = [
+    {
+      name: 'New Observation',
+      icon: 'plus',
+      action: () => window.location.href = ROUTES.CREATE_OBSERVATION,
+    },
+    {
+      name: 'New Audit',
+      icon: 'audit',
+      action: () => window.location.href = ROUTES.CREATE_AUDIT,
+      adminOnly: true,
+    },
+    {
+      name: 'New Permit',
+      icon: 'permit',
+      action: () => window.location.href = ROUTES.CREATE_PERMIT,
+    },
+  ];
 
-  return (
-    <div className="px-4 py-3 border-t border-gray-200">
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-        Quick Actions
-      </h3>
-      <div className="space-y-2">
-        {quickActions
-          .filter(action => !action.adminOnly || user?.role === USER_ROLES.ADMIN)
-          .map((action, index) => (
-          <button
-            key={index}
-            onClick={action.onClick}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
-          >
-            {action.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
+  const getIcon = (iconName: string) => {
+    const iconMap: Record<string, string> = {
+      dashboard: 'M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z',
+      observations: 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+      audits: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+      permits: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+      users: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z',
+      plus: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
+      audit: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+      permit: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+    };
 
-// User profile section
-const UserProfileSection: React.FC = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const { showSuccess } = useNotification();
-
-  if (!user) return null;
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      showSuccess('Logged Out', 'You have been successfully logged out.');
-      navigate(ROUTES.LOGIN);
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+    return iconMap[iconName] || iconMap.dashboard;
   };
 
-  return (
-    <div className="px-4 py-3 border-t border-gray-200">
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full font-medium">
-          {getInitials(user.name || user.email)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{user.name || user.email}</p>
-          <p className="text-xs text-gray-500 truncate">{user.email}</p>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-        </span>
-      </div>
-
-      <button
-        onClick={handleLogout}
-        className="w-full flex items-center px-3 py-2 text-sm text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
-      >
-        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-        Sign Out
-      </button>
-    </div>
-  );
-};
-
-// Menu item component
-const MenuItem: React.FC<{ item: MenuItem; onClick?: () => void }> = ({ item, onClick }) => {
-  const location = useLocation();
-  const isActive = location.pathname === item.path;
-
-  return (
-    <li>
-      <Link
-        to={item.path}
-        onClick={onClick}
-        className={`
-          group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
-          ${isActive
-            ? 'bg-blue-100 text-blue-900'
-            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-          }
-        `}
-      >
-        <Icon
-          name={item.icon}
-          className={`
-            mr-3 h-5 w-5 transition-colors
-            ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
-          `}
-        />
-        {item.name}
-      </Link>
-    </li>
-  );
-};
-
-// Main Sidebar component
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
-
-  if (!user) return null;
-
-  // Check if user has access to menu item
+  // ✅ FIXED: Helper function moved BEFORE usage
   const hasAccess = (item: MenuItem): boolean => {
     if (!user || !item.roles.length) return true;
     return item.roles.includes(user.role);
   };
 
-  // Filter menu items based on user role
-  const filteredMenuItems = SIDEBAR_MENU_ITEMS.filter(hasAccess);
+  // ✅ FIXED: Filter menu items BEFORE JSX return
+  const filteredMenuItems = menuItems.filter(hasAccess);
+
+  if (!user) {
+    return null;
+  }
 
   return (
-    <>
-      {/* Mobile backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity md:hidden z-40"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-          fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out
-          md:translate-x-0 md:static md:inset-0
-          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}
-      >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <Link to={ROUTES.DASHBOARD} className="flex items-center space-x-2">
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white shadow-sm border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          {!isCollapsed && (
+            <Link to={ROUTES.DASHBOARD} className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">S</span>
+                <span className="text-white font-bold text-sm">SM</span>
               </div>
               <span className="text-xl font-semibold text-gray-900">
-                {APP_CONFIG.APP_NAME.split(' ')}
+                {APP_CONFIG.APP_NAME}
               </span>
             </Link>
-
-            {/* Close button for mobile */}
-            <button
-              onClick={onClose}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 md:hidden"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 overflow-y-auto">
-            <ul className="space-y-1">
-              {filteredMenuItems.map((item, index) => (
-                <MenuItem
-                  key={index}
-                  item={item}
-                  onClick={onClose} // Close sidebar on mobile when item is clicked
-                />
-              ))}
-            </ul>
-          </nav>
-
-          {/* Quick Actions */}
-          <QuickActions />
-
-          {/* User Profile Section */}
-          <UserProfileSection />
+          )}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+            </svg>
+          </button>
         </div>
       </div>
-    </>
+
+      {/* Quick Actions */}
+      {!isCollapsed && (
+        <div className="p-4 border-b border-gray-200">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Quick Actions
+          </h3>
+          <div className="space-y-2">
+            {quickActions
+              .filter(action => !action.adminOnly || user?.role === USER_ROLES.ADMIN)
+              .map((action, index) => (
+              <button
+                key={index}
+                onClick={action.action}
+                className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d={getIcon(action.icon)} clipRule="evenodd" />
+                </svg>
+                <span>{action.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* User Info */}
+      {!isCollapsed && (
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full font-medium">
+              {getInitials(user.name || user.email)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{user.name || user.email}</p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Menu */}
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {!isCollapsed && (
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Navigation
+          </h3>
+        )}
+        {/* ✅ FIXED: filteredMenuItems is now properly defined */}
+        {filteredMenuItems.map((item: MenuItem) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+                ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+            title={isCollapsed ? item.name : ''}
+          >
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d={getIcon(item.icon)} clipRule="evenodd" />
+            </svg>
+            {!isCollapsed && (
+              <div className="flex items-center justify-between flex-1">
+                <span>{item.name}</span>
+                {item.badge && item.badge > 0 && (
+                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+            )}
+          </Link>
+        ))}
+      </nav>
+    </div>
   );
 };
 

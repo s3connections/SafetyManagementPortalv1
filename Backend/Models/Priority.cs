@@ -9,18 +9,18 @@ namespace Backend.Models
     {
         [Required]
         [StringLength(50)]
-        public string Name { get; set; }
-        
+        public string Name { get; set; } = string.Empty;
+
         [Required]
         [StringLength(20)]
-        public string Code { get; set; }
+        public string Code { get; set; } = string.Empty;
         
         [StringLength(500)]
         public string? Description { get; set; }
-        
+
         [Required]
         [StringLength(7)]
-        public string Color { get; set; } // Hex color code
+        public string Color { get; set; } = string.Empty; // Hex color code
         
         [Required]
         public int SortOrder { get; set; }

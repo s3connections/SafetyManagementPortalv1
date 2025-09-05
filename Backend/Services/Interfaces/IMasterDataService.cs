@@ -1,10 +1,10 @@
 using Backend.DTOs.Incident;
-using Backend.DTOs.Audit;
-using Backend.DTOs.Permit;
+using Backend.DTOs.Common;
+using Backend.Dtos.Permit;
+using Backend.Dtos.Audit;
 using Backend.DTOs.Employee;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Backend.DTOs.Common;
 
 namespace Backend.Services.Interfaces
 {
