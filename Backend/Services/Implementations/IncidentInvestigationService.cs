@@ -17,7 +17,7 @@ namespace Backend.Services.Implementations
 
         private SafetyManagementContext Ctx => (SafetyManagementContext)_context;
 
-        public override async Task<PagedResult<IncidentInvestigationDto>> GetAllAsync(SearchFilter filter)
+        public async Task<IEnumerable<IncidentInvestigationDto>> GetAllAsync(SearchFilter filter)
         {
             var q = Ctx.IncidentInvestigations.Include(i => i.IncidentObservation).Include(i => i.LeadInvestigator).Where(i => !i.IsDeleted);
             var total = await q.CountAsync();

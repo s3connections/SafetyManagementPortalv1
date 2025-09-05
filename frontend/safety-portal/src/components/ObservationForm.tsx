@@ -39,14 +39,14 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
   initialData,
   mode = 'create'
 }) => {
-  // ✅ FIXED: Form state matches backend exactly
+  // ✅ FIXED: Form state matches backend enums
   const [formData, setFormData] = useState<ObservationFormData>({
     title: '',
     description: '',
-    observationType: 'UnsafeAct', // ✅ FIXED: Use backend enum values
-    priority: 'Low',
+    observationType: 'Safety', // ✅ FIXED: Use backend enum values
+    priorityId: 1, // ✅ FIXED: Reference Priority by ID
     location: '',
-    reportedByUserId: 1, // ✅ FIXED: Use proper property name and default user
+    reportedByUserId: 1, // Default user ID
     assignedToUserId: undefined,
     plantId: undefined,
     departmentId: undefined,
@@ -59,6 +59,20 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [priorities, setPriorities] = useState<Priority[]>([]);
+
+  // Load priorities from backend
+  useEffect(() => {
+    // You'll need to implement this service call
+    // setPriorities(await PriorityService.getAll());
+    // For now, mock data:
+    setPriorities([
+      { id: 1, name: 'Low', code: 'LOW', color: '#4caf50', sortOrder: 1, slaHours: 72, isActive: true },
+      { id: 2, name: 'Medium', code: 'MED', color: '#ff9800', sortOrder: 2, slaHours: 48, isActive: true },
+      { id: 3, name: 'High', code: 'HIGH', color: '#f44336', sortOrder: 3, slaHours: 24, isActive: true },
+      { id: 4, name: 'Critical', code: 'CRIT', color: '#9c27b0', sortOrder: 4, slaHours: 8, isActive: true }
+    ]);
+  }, []);
 
   // ✅ FIXED: File handling corrected
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,17 +113,17 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
   };
 
   // Handle select changes
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+  const handleSelectChange = (e: SelectChangeEvent<string | number>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
     
-    if (errors[name]) {
+    if (errors[name!]) {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        [name!]: ''
       }));
     }
   };
@@ -126,8 +140,8 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
       newErrors.observationType = 'Observation type is required';
     }
 
-    if (!formData.priority) {
-      newErrors.priority = 'Priority is required';
+    if (!formData.priorityId) {
+      newErrors.priorityId = 'Priority is required';
     }
 
     if (!formData.location.trim()) {
@@ -155,12 +169,18 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
       setError(null);
       setSuccess(null);
       
+      // ✅ FIXED: Find the Priority entity by ID
+      const selectedPriority = priorities.find(p => p.id === formData.priorityId);
+      if (!selectedPriority) {
+        throw new Error('Selected priority not found');
+      }
+
       // ✅ FIXED: Create DTO with exact backend structure
       const createData: CreateObservationDto = {
         title: formData.title,
         description: formData.description,
         observationType: formData.observationType,
-        priority: formData.priority,
+        priority: selectedPriority, // ✅ FIXED: Send full Priority entity
         location: formData.location || undefined,
         dueDate: formData.dueDate || undefined,
         reportedByUserId: formData.reportedByUserId,
@@ -194,8 +214,8 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
     setFormData({
       title: '',
       description: '',
-      observationType: 'UnsafeAct',
-      priority: 'Low',
+      observationType: 'Safety',
+      priorityId: 1,
       location: '',
       reportedByUserId: 1,
       assignedToUserId: undefined,
@@ -237,7 +257,7 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
 
           <Grid container spacing={3}>
             {/* Title */}
-            <Grid size ={{xs:12}}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 name="title"
@@ -251,7 +271,7 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
             </Grid>
 
             {/* Observation Type */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.observationType}>
                 <InputLabel id="observation-type-label">Observation Type *</InputLabel>
                 <Select
@@ -261,10 +281,11 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
                   label="Observation Type *"
                   onChange={handleSelectChange}
                 >
-                  <MenuItem value="UnsafeAct">Unsafe Act</MenuItem>
-                  <MenuItem value="UnsafeCondition">Unsafe Condition</MenuItem>
-                  <MenuItem value="NearMiss">Near Miss</MenuItem>
-                  <MenuItem value="GoodPractice">Good Practice</MenuItem>
+                  <MenuItem value="Safety">Safety</MenuItem>
+                  <MenuItem value="Environmental">Environmental</MenuItem>
+                  <MenuItem value="Quality">Quality</MenuItem>
+                  <MenuItem value="Security">Security</MenuItem>
+                  <MenuItem value="Other">Other</MenuItem>
                 </Select>
                 {errors.observationType && (
                   <FormHelperText>{errors.observationType}</FormHelperText>
@@ -273,29 +294,30 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
             </Grid>
 
             {/* Priority */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth error={!!errors.priority}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.priorityId}>
                 <InputLabel id="priority-label">Priority *</InputLabel>
                 <Select
                   labelId="priority-label"
-                  name="priority"
-                  value={formData.priority}
+                  name="priorityId"
+                  value={formData.priorityId}
                   label="Priority *"
                   onChange={handleSelectChange}
                 >
-                  <MenuItem value="Low">Low</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Critical">Critical</MenuItem>
+                  {priorities.map((priority) => (
+                    <MenuItem key={priority.id} value={priority.id}>
+                      {priority.name}
+                    </MenuItem>
+                  ))}
                 </Select>
-                {errors.priority && (
-                  <FormHelperText>{errors.priority}</FormHelperText>
+                {errors.priorityId && (
+                  <FormHelperText>{errors.priorityId}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
 
             {/* Location */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 name="location"
@@ -309,7 +331,7 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
             </Grid>
 
             {/* Due Date */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 name="dueDate"
@@ -324,7 +346,7 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
             </Grid>
 
             {/* Description */}
-            <Grid size ={{xs:12}}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 multiline
@@ -340,7 +362,7 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
             </Grid>
 
             {/* File Upload */}
-            <Grid size ={{xs:12}}>
+            <Grid item xs={12}>
               <Box>
                 <Typography variant="subtitle1" gutterBottom>
                   Attach Image (Optional)

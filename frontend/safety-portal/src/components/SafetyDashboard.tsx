@@ -42,15 +42,17 @@ import ObservationService from '../services/ObservationService';
 import AuditService from '../services/AuditService';
 import { Observation, Audit, ObservationType, Priority, ObservationStatus } from '../types';
 
-// ✅ FIXED: Interface extends Observation with correct types
-interface ObservationData extends Observation {
+// ✅ FIXED: Don't extend - create compatible interface
+interface ObservationData {
+  id: number;
   slaDeadline?: string;
   ticketNumber: string;
+  title: string;
+  description: string;
   createdAt: string;
   status: ObservationStatus;
-  priority: Priority;
+  priority: Priority; // ✅ FIXED: Priority entity, not string
   observationType: ObservationType;
-  description: string;
   reporter?: {
     firstName: string;
     lastName: string;
@@ -106,20 +108,37 @@ const SafetyDashboard: React.FC = () => {
         ? (auditsResponse.data || []) 
         : [];
 
-      // ✅ FIXED: Process observations with correct enum values
+      // ✅ FIXED: Process observations with Priority entity
       const observationsByPriority = [
-        { name: 'High', value: observations.filter((o: ObservationData) => o.priority === 'High').length, color: '#f44336' },
-        { name: 'Medium', value: observations.filter((o: ObservationData) => o.priority === 'Medium').length, color: '#ff9800' },
-        { name: 'Low', value: observations.filter((o: ObservationData) => o.priority === 'Low').length, color: '#4caf50' },
-        { name: 'Critical', value: observations.filter((o: ObservationData) => o.priority === 'Critical').length, color: '#9c27b0' }
-      ];
+        { 
+          name: 'High', 
+          value: observations.filter((o: ObservationData) => o.priority?.name === 'High').length, 
+          color: '#f44336' 
+        },
+        { 
+          name: 'Medium', 
+          value: observations.filter((o: ObservationData) => o.priority?.name === 'Medium').length, 
+          color: '#ff9800' 
+        },
+        { 
+          name: 'Low', 
+          value: observations.filter((o: ObservationData) => o.priority?.name === 'Low').length, 
+          color: '#4caf50' 
+        },
+        { 
+          name: 'Critical', 
+          value: observations.filter((o: ObservationData) => o.priority?.name === 'Critical').length, 
+          color: '#9c27b0' 
+        }
+      ].filter(item => item.value > 0);
 
-      // ✅ FIXED: Use correct ObservationType enum values
+      // ✅ FIXED: Use correct backend ObservationType enum values
       const observationsByType = [
-        { name: 'Unsafe Act', value: observations.filter((o: ObservationData) => o.observationType === 'UnsafeAct').length },
-        { name: 'Unsafe Condition', value: observations.filter((o: ObservationData) => o.observationType === 'UnsafeCondition').length },
-        { name: 'Near Miss', value: observations.filter((o: ObservationData) => o.observationType === 'NearMiss').length },
-        { name: 'Good Practice', value: observations.filter((o: ObservationData) => o.observationType === 'GoodPractice').length }
+        { name: 'Safety', value: observations.filter((o: ObservationData) => o.observationType === 'Safety').length },
+        { name: 'Environmental', value: observations.filter((o: ObservationData) => o.observationType === 'Environmental').length },
+        { name: 'Quality', value: observations.filter((o: ObservationData) => o.observationType === 'Quality').length },
+        { name: 'Security', value: observations.filter((o: ObservationData) => o.observationType === 'Security').length },
+        { name: 'Other', value: observations.filter((o: ObservationData) => o.observationType === 'Other').length }
       ].filter(item => item.value > 0);
 
       // Generate trend data for the last 30 days
@@ -133,7 +152,7 @@ const SafetyDashboard: React.FC = () => {
         trendData.push({ date: dateStr, count });
       }
 
-      // Calculate overdue observations
+      // ✅ FIXED: Use correct backend status values
       const overdueCount = observations.filter((o: ObservationData) =>
         o.slaDeadline && new Date(o.slaDeadline) < new Date() && o.status !== 'Closed'
       ).length;
@@ -151,7 +170,7 @@ const SafetyDashboard: React.FC = () => {
           type: 'observation' as const,
           title: `Observation ${o.ticketNumber}`,
           description: (o.description || '').substring(0, 100) + '...',
-          priority: o.priority,
+          priority: o.priority?.name || '', // ✅ FIXED: Get priority name from entity
           date: o.createdAt,
           user: o.reporter ? `${o.reporter.firstName} ${o.reporter.lastName}` : 'Unknown User'
         })),
@@ -244,7 +263,7 @@ const SafetyDashboard: React.FC = () => {
         <>
           {/* Key Metrics Cards */}
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -261,7 +280,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -278,7 +297,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -295,7 +314,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -316,7 +335,7 @@ const SafetyDashboard: React.FC = () => {
           {/* Charts Row */}
           <Grid container spacing={3} sx={{ mb: 3 }}>
             {/* Observation Trend */}
-            <Grid size={{ xs: 12, md: 8 }}>
+            <Grid item xs={12} md={8}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -336,7 +355,7 @@ const SafetyDashboard: React.FC = () => {
             </Grid>
 
             {/* Priority Distribution */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid item xs={12} md={4}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -369,7 +388,7 @@ const SafetyDashboard: React.FC = () => {
           {/* Bottom Row */}
           <Grid container spacing={3}>
             {/* Observations by Type */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -389,7 +408,7 @@ const SafetyDashboard: React.FC = () => {
             </Grid>
 
             {/* Recent Activities */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>

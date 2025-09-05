@@ -43,9 +43,9 @@ export const isActiveRoute = (currentPath: string, routePath: string): boolean =
   if (routePath === ROUTES.DASHBOARD) {
     return currentPath === routePath;
   }
+
   
-  
-  const pathWithoutParams = routePath.split('/:')[0]; // Add [0]
-return currentPath.startsWith(pathWithoutParams);
+  const pathWithoutParams = routePath.split('/:')[0]; // ✅ FIXED: Get first element
+  return currentPath.startsWith(pathWithoutParams);
 }
-};
+}

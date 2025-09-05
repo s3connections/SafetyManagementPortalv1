@@ -35,7 +35,7 @@ export interface User {
 
 export type UserRole = 'admin' | 'manager' | 'supervisor' | 'employee' | 'auditor' | 'safety_officer';
 
-// ✅ UPDATED: Observation Types - Now aligned with backend C# enums
+// ✅ FIXED: Match backend exactly
 export interface Observation {
   id: number;
   ticketNumber: string;
@@ -43,7 +43,7 @@ export interface Observation {
   description: string;
   observationType: ObservationType;
   status: ObservationStatus;
-  priority: Priority;
+  priority: Priority; // ✅ This will be the Priority entity from backend
   reportedBy: number;
   assignedTo?: number;
   plantId: number;
@@ -58,35 +58,43 @@ export interface Observation {
   updatedAt: string;
 }
 
-// ✅ UPDATED: Match backend C# enum values (PascalCase)
-export type ObservationType = 'UnsafeAct' | 'UnsafeCondition' | 'NearMiss' | 'GoodPractice';
+// ✅ FIXED: Match your backend enum exactly
+export type ObservationType = 'Safety' | 'Environmental' | 'Quality' | 'Security' | 'Other';
 
-// ✅ UPDATED: Match backend C# enum values (Resolved → Completed)
-export type ObservationStatus = 'Open' | 'InProgress' | 'Completed' | 'Closed' | 'Cancelled';
+// ✅ FIXED: Match your backend enum exactly (keep Resolved, not Completed)
+export type ObservationStatus = 'Open' | 'InProgress' | 'Resolved' | 'Closed' | 'Cancelled';
 
-// ✅ UPDATED: Match backend C# enum values (PascalCase)
-export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
+// ✅ FIXED: Priority is entity, not enum - use this for display only
+export interface Priority {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  color: string;
+  sortOrder: number;
+  slaHours: number;
+  isActive: boolean;
+}
 
-// ✅ UPDATED: CreateObservationDto to match backend exactly
+// ✅ FIXED: CreateObservationDto to match backend exactly
 export interface CreateObservationDto {
   title: string;
   description: string;
   observationType: ObservationType;
-  priority: Priority;
+  priority: Priority; // ✅ Backend expects Priority entity
   location?: string;
   dueDate?: string;
-  reportedByUserId: number; // ✅ FIXED: Match backend property name
-  assignedToUserId?: number; // ✅ FIXED: Match backend property name
+  reportedByUserId: number;
+  assignedToUserId?: number;
   plantId?: number;
   departmentId?: number;
 }
 
-// ✅ UPDATED: UpdateObservationDto to match backend exactly
 export interface UpdateObservationDto {
   title?: string;
   description?: string;
   observationType?: ObservationType;
-  priority?: Priority;
+  priority?: Priority; // ✅ Backend expects Priority entity
   status?: ObservationStatus;
   location?: string;
   dueDate?: string;
@@ -141,12 +149,12 @@ export interface Permit {
 export type PermitType = 'hot_work' | 'confined_space' | 'height_work' | 'electrical' | 'excavation' | 'chemical';
 export type PermitStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'expired' | 'cancelled';
 
-// ✅ UPDATED: Form Data Types to match new backend structure
+// ✅ FIXED: Form Data Types to work with Priority entity
 export interface ObservationFormData {
   title: string;
   description: string;
   observationType: ObservationType;
-  priority: Priority;
+  priorityId: number; // ✅ Reference Priority by ID
   location: string;
   dueDate?: string;
   reportedByUserId: number;
