@@ -15,85 +15,47 @@ export const API_ENDPOINTS = {
     UPDATE: (id: number) => `/observations/${id}`,
     DELETE: (id: number) => `/observations/${id}`,
     GET_BY_ID: (id: number) => `/observations/${id}`,
-    BY_STATUS: (status: string) => `/observations/status/${status}`,
-    BY_REPORTER: (reporterId: number) => `/observations/reporter/${reporterId}`,
-    BY_ASSIGNEE: (assigneeId: number) => `/observations/assignee/${assigneeId}`,
-    BY_PLANT: (plantId: number) => `/observations/plant/${plantId}`,
-    BY_DEPARTMENT: (departmentId: number) => `/observations/department/${departmentId}`,
-    OVERDUE: '/observations/overdue',
-    STATISTICS: '/observations/statistics',
-    ASSIGN: (id: number) => `/observations/${id}/assign`,
-    UPDATE_STATUS: (id: number) => `/observations/${id}/status`,
   },
   AUDITS: {
     BASE: '/audits',
-    LIST: '/audits',
     CREATE: '/audits',
+    LIST: '/audits',
     UPDATE: (id: number) => `/audits/${id}`,
     DELETE: (id: number) => `/audits/${id}`,
     GET_BY_ID: (id: number) => `/audits/${id}`,
-    START: (id: number) => `/audits/${id}/start`,
-    COMPLETE: (id: number) => `/audits/${id}/complete`,
-    CANCEL: (id: number) => `/audits/${id}/cancel`,
-    BY_STATUS: (status: string) => `/audits/status/${status}`,
-    BY_AUDITOR: (auditorId: number) => `/audits/auditor/${auditorId}`,
-    BY_PLANT: (plantId: number) => `/audits/plant/${plantId}`,
-    BY_DEPARTMENT: (departmentId: number) => `/audits/department/${departmentId}`,
-    OVERDUE: '/audits/overdue',
-    STATISTICS: '/audits/statistics',
   },
   PERMITS: {
     BASE: '/permits',
-    LIST: '/permits',
     CREATE: '/permits',
+    LIST: '/permits',
     UPDATE: (id: number) => `/permits/${id}`,
     DELETE: (id: number) => `/permits/${id}`,
     GET_BY_ID: (id: number) => `/permits/${id}`,
-    SUBMIT: (id: number) => `/permits/${id}/submit`,
-    APPROVE: (id: number) => `/permits/${id}/approve`,
-    REJECT: (id: number) => `/permits/${id}/reject`,
-    BY_STATUS: (status: string) => `/permits/status/${status}`,
-    BY_REQUESTOR: (requestorId: number) => `/permits/requestor/${requestorId}`,
-    BY_APPROVER: (approverId: number) => `/permits/approver/${approverId}`,
-    BY_PLANT: (plantId: number) => `/permits/plant/${plantId}`,
-    BY_DEPARTMENT: (departmentId: number) => `/permits/department/${departmentId}`,
-    EXPIRING: (days: number) => `/permits/expiring/${days}`,
-    STATISTICS: '/permits/statistics',
-    GENERATE_NUMBER: '/permits/generate-number',
-  },
-  USERS: {
-    BASE: '/users',
-    LIST: '/users',
-    CREATE: '/users',
-    UPDATE: (id: number) => `/users/${id}`,
-    DELETE: (id: number) => `/users/${id}`,
-    GET_BY_ID: (id: number) => `/users/${id}`,
-    BY_ROLE: (role: string) => `/users/role/${role}`,
-    BY_DEPARTMENT: (departmentId: number) => `/users/department/${departmentId}`,
-    BY_PLANT: (plantId: number) => `/users/plant/${plantId}`,
   },
 } as const;
 
-// Storage Keys
+// Storage Keys (MATCH THE ACTUAL KEYS USED)
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'accessToken',
-  REFRESH_TOKEN: 'refreshToken',
-  USER: 'user',
-  THEME: 'theme',
-  LANGUAGE: 'language',
+  AUTH_TOKEN: 'auth_token',
+  USER_DATA: 'user_data',
+  REFRESH_TOKEN: 'refresh_token',
+  THEME_PREFERENCE: 'theme_preference',
+  // Add aliases for compatibility
+  ACCESS_TOKEN: 'auth_token',
+  USER: 'user_data',
 } as const;
 
 // Routes
 export const ROUTES = {
+  HOME: '/',
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
   OBSERVATIONS: '/observations',
+  INCIDENTS: '/incidents',
   AUDITS: '/audits',
   PERMITS: '/permits',
   USERS: '/users',
   PROFILE: '/profile',
-  SETTINGS: '/settings',
-  REPORTS: '/reports',
 } as const;
 
 // User Roles
@@ -107,7 +69,28 @@ export const USER_ROLES = {
 } as const;
 
 // App Configuration
-export const APP_NAME = 'Safety Management System';
+export const APP_CONFIG = {
+  APP_NAME: 'Safety Management System',
+  VERSION: '1.0.0',
+} as const;
+
+// For backward compatibility
+export const APP_NAME = APP_CONFIG.APP_NAME;
+
+// Status Colors
+export const STATUS_COLORS = {
+  success: 'green',
+  error: 'red',
+  warning: 'orange',
+  info: 'blue',
+} as const;
+
+// Validation
+export const VALIDATION = {
+  MIN_PASSWORD_LENGTH: 6,
+  MAX_TITLE_LENGTH: 200,
+  MAX_DESCRIPTION_LENGTH: 2000,
+} as const;
 
 // Sidebar Menu Items
 export const SIDEBAR_MENU_ITEMS = [
@@ -140,11 +123,5 @@ export const SIDEBAR_MENU_ITEMS = [
     path: ROUTES.USERS,
     icon: 'users',
     roles: [USER_ROLES.ADMIN],
-  },
-  {
-    name: 'Reports',
-    path: ROUTES.REPORTS,
-    icon: 'reports',
-    roles: [USER_ROLES.ADMIN, USER_ROLES.MANAGER],
   },
 ] as const;

@@ -1,27 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Card,
-  CardContent,
+  Container,
+  Paper,
   TextField,
   Button,
   Typography,
+  Box,
   Alert,
-  Container,
-  Avatar,
-  InputAdornment,
-  IconButton,
-  CircularProgress
+  CircularProgress,
+  Link,
 } from '@mui/material';
-import {
-  Lock as LockIcon,
-  Visibility,
-  VisibilityOff,
-  Person as PersonIcon
-} from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { ROUTES } from '../../constants';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -29,65 +20,42 @@ const Login: React.FC = () => {
   
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(ROUTES.DASHBOARD);
+    }
+  }, [isAuthenticated, navigate]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: value,
     }));
-    
-    if (error) {
-      setError('');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
-  setIsLoading(true);
-try {
-    const success = await login(formData.email, formData.password);
-
-    if (success) {
-      navigate('/dashboard');
-    } else {
-      setError('Invalid email or password');
-    }
-  } catch (error) {
-    setError('An error occurred during login');
-  } finally {
-    setIsLoading(false);
-  }
-};
-    
-    if (!formData.email || !formData.password) {
-      setError('Please enter both email and password');
-      return;
-    }
-
-    setLoading(true);
+    e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const success = await login(formData.email, formData.password);
       
       if (success) {
-        navigate('/dashboard');
+        navigate(ROUTES.DASHBOARD);
       } else {
         setError('Invalid email or password');
       }
     } catch (error) {
-      setError('Login failed. Please try again.');
+      setError('An error occurred during login');
     } finally {
       setLoading(false);
     }
@@ -97,111 +65,72 @@ try {
     <Container component="main" maxWidth="sm">
       <Box
         sx={{
-          minHeight: '100vh',
+          marginTop: 8,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
         }}
       >
-        <Card sx={{ width: '100%', maxWidth: 400, p: 4 }}>
-          <CardContent>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                mb: 4
-              }}
+        <Paper elevation={3} sx={{ padding: 4, width: '100%' }}>
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Typography component="h1" variant="h4" gutterBottom>
+              Safety Management System
+            </Typography>
+            <Typography variant="h6" color="textSecondary">
+              Sign in to your account
+            </Typography>
+          </Box>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={formData.email}
+              onChange={handleChange}
+              disabled={loading}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={loading}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 64, height: 64 }}>
-                <LockIcon fontSize="large" />
-              </Avatar>
-              <Typography component="h1" variant="h4" gutterBottom>
-                Safety Portal
-              </Typography>
-              <Typography variant="h6" color="text.secondary" textAlign="center">
-                Sign in to your account
-              </Typography>
-            </Box>
+              {loading ? <CircularProgress size={24} /> : 'Sign In'}
+            </Button>
+          </Box>
 
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            <Box component="form" onSubmit={handleSubmit}>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                label="Email Address"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                autoComplete="email"
-                autoFocus
-              />
-              
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                autoComplete="current-password"
-              />
-
-              <LoadingButton
-                type="submit"
-                fullWidth
-                variant="contained"
-                loading={loading}
-                sx={{ mt: 3, mb: 2, py: 1.5 }}
-                size="large"
-              >
-                Sign In
-              </LoadingButton>
-
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Safety Management System v1.0
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Powered by S3 Connections
-                </Typography>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Link href="#" variant="body2">
+              Forgot password?
+            </Link>
+          </Box>
+        </Paper>
       </Box>
     </Container>
   );

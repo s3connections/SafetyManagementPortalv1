@@ -4,7 +4,6 @@ using Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Add services to the container
 builder.Services.AddControllers();
 
@@ -12,11 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<SafetyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
 // Add business services
 builder.Services.AddScoped<IObservationService, ObservationService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
-builder.Services.AddScoped<IIncidentObservationService, IncidentObservationService>();
 
 // Add CORS for React frontend  
 builder.Services.AddCors(options =>

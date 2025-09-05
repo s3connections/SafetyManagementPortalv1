@@ -107,26 +107,6 @@ export interface Audit {
 export type AuditType = 'internal' | 'external' | 'regulatory' | 'management_review';
 export type AuditStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
-export interface CreateAuditDto {
-  title: string;
-  description: string;
-  auditType: AuditType;
-  auditorId: number;
-  plantId: number;
-  departmentId: number;
-  scheduledDate: string;
-}
-
-export interface UpdateAuditDto {
-  title?: string;
-  description?: string;
-  auditorId?: number;
-  scheduledDate?: string;
-  status?: AuditStatus;
-  findings?: string;
-  recommendations?: string;
-}
-
 // Permit Types
 export interface Permit {
   id: number;
@@ -143,9 +123,6 @@ export interface Permit {
   endDate: string;
   hazardAssessment: string;
   controlMeasures: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -153,26 +130,19 @@ export interface Permit {
 export type PermitType = 'hot_work' | 'confined_space' | 'height_work' | 'electrical' | 'excavation' | 'chemical';
 export type PermitStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'expired' | 'cancelled';
 
-export interface CreatePermitDto {
+// Form Data Types
+export interface ObservationFormData {
   title: string;
   description: string;
-  permitType: PermitType;
+  observationType?: ObservationType;
+  priority: Priority;
   plantId: number;
   departmentId: number;
-  startDate: string;
-  endDate: string;
-  hazardAssessment: string;
-  controlMeasures: string;
-}
-
-export interface UpdatePermitDto {
-  title?: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-  hazardAssessment?: string;
-  controlMeasures?: string;
-  status?: PermitStatus;
+  location: string;
+  hazardCategoryId?: number;
+  hazardTypeId?: number;
+  assignedTo?: number;
+  dueDate?: string;
 }
 
 // Common Filter Types
@@ -187,33 +157,4 @@ export interface SearchFilter {
   departmentId?: number;
   dateFrom?: string;
   dateTo?: string;
-}
-
-// Statistics Types
-export interface ObservationStatisticsDto {
-  totalObservations: number;
-  openObservations: number;
-  completedObservations: number;
-  overdueObservations: number;
-  observationsByType: Record<ObservationType, number>;
-  observationsByStatus: Record<ObservationStatus, number>;
-  observationsByPriority: Record<Priority, number>;
-}
-
-export interface AuditStatisticsDto {
-  totalAudits: number;
-  completedAudits: number;
-  scheduledAudits: number;
-  overdueAudits: number;
-  auditsByType: Record<AuditType, number>;
-  auditsByStatus: Record<AuditStatus, number>;
-}
-
-export interface PermitStatisticsDto {
-  totalPermits: number;
-  activePermits: number;
-  expiredPermits: number;
-  rejectedPermits: number;
-  permitsByType: Record<PermitType, number>;
-  permitsByStatus: Record<PermitStatus, number>;
 }

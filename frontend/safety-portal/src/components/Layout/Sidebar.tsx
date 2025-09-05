@@ -2,56 +2,55 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
-import { ROUTES, USER_ROLES, APP_NAME, SIDEBAR_MENU_ITEMS } from '../../constants';
+import { ROUTES, USER_ROLES, APP_CONFIG } from '../../constants';
+
+/// <reference types="react" />
 
 // Sidebar props interface
 interface SidebarProps {
-  isOpen?: boolean;
-  onClose?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 // Menu item interface
 interface MenuItem {
-  label: string;
+  name: string;
   path: string;
   icon: string;
   roles: string[];
-  children?: MenuItem[];
 }
 
 // Icon component
 const Icon: React.FC<{ name: string; className?: string }> = ({ name, className = "w-5 h-5" }) => {
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, React.ReactElement> = {
     dashboard: (
       <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
+      </svg>
+    ),
+    observations: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+    audits: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    ),
+    permits: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     ),
     users: (
       <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
       </svg>
     ),
-    analytics: (
+    reports: (
       <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-    settings: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-    chevronRight: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
-    ),
-    chevronDown: (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
     ),
   };
@@ -59,102 +58,86 @@ const Icon: React.FC<{ name: string; className?: string }> = ({ name, className 
   return icons[name] || icons.dashboard;
 };
 
-// Single menu item component
-const MenuItem: React.FC<{
-  item: MenuItem;
-  isActive: boolean;
-  hasAccess: boolean;
-  onItemClick?: () => void;
-}> = ({ item, isActive, hasAccess, onItemClick }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const hasChildren = item.children && item.children.length > 0;
-
-  if (!hasAccess) {
-    return null;
-  }
-
-  const handleClick = () => {
-    if (hasChildren) {
-      setIsExpanded(!isExpanded);
-    } else {
-      onItemClick?.();
-    }
-  };
-
-  const itemClasses = `
-    flex items-center justify-between w-full px-4 py-3 text-left rounded-lg transition-colors
-    ${isActive 
-      ? 'bg-blue-600 text-white shadow-sm' 
-      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-    }
-    ${hasChildren ? 'cursor-pointer' : ''}
-  `;
-
-  const content = (
-    <div className={itemClasses} onClick={hasChildren ? handleClick : undefined}>
-      <div className="flex items-center space-x-3">
-        <Icon name={item.icon} className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-        <span className="font-medium text-sm">{item.label}</span>
-      </div>
-      {hasChildren && (
-        <Icon 
-          name={isExpanded ? "chevronDown" : "chevronRight"} 
-          className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`}
-        />
-      )}
-    </div>
-  );
-
-  return (
-    <li className="mb-1">
-      {hasChildren ? (
-        content
-      ) : (
-        <Link to={item.path} onClick={onItemClick}>
-          {content}
-        </Link>
-      )}
-
-      {hasChildren && isExpanded && (
-        <ul className="ml-6 mt-2 space-y-1">
-          {item.children?.map((child, index) => (
-            <MenuItem
-              key={index}
-              item={child}
-              isActive={location.pathname === child.path}
-              hasAccess={true} // Assume child access is already filtered
-              onItemClick={onItemClick}
-            />
-          ))}
-        </ul>
-      )}
-    </li>
-  );
+// Helper function to get user initials
+const getInitials = (name: string): string => {
+  return name
+    .split(' ')
+    .map((n) => n)
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
 };
+
+// Helper function to get role color
+const getRoleColor = (role: string): string => {
+  const colors = {
+    admin: 'bg-red-100 text-red-800',
+    manager: 'bg-blue-100 text-blue-800',
+    supervisor: 'bg-green-100 text-green-800',
+    employee: 'bg-gray-100 text-gray-800',
+    auditor: 'bg-purple-100 text-purple-800',
+    safety_officer: 'bg-orange-100 text-orange-800',
+  };
+  return colors[role as keyof typeof colors] || colors.employee;
+};
+
+// Menu items configuration
+const SIDEBAR_MENU_ITEMS: MenuItem[] = [
+  {
+    name: 'Dashboard',
+    path: ROUTES.DASHBOARD,
+    icon: 'dashboard',
+    roles: [],
+  },
+  {
+    name: 'Observations',
+    path: ROUTES.OBSERVATIONS,
+    icon: 'observations',
+    roles: [],
+  },
+  {
+    name: 'Audits',
+    path: ROUTES.AUDITS,
+    icon: 'audits',
+    roles: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.AUDITOR],
+  },
+  {
+    name: 'Permits',
+    path: ROUTES.PERMITS,
+    icon: 'permits',
+    roles: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.SUPERVISOR],
+  },
+  {
+    name: 'Users',
+    path: ROUTES.USERS,
+    icon: 'users',
+    roles: [USER_ROLES.ADMIN],
+  },
+];
 
 // Quick actions component
 const QuickActions: React.FC = () => {
+  const { user } = useAuth();
   const { showSuccess } = useNotification();
 
   const quickActions = [
     {
-      label: 'New Report',
-      icon: 'analytics',
-      action: () => showSuccess('Coming Soon', 'Report creation feature will be available soon.'),
+      name: 'New Observation',
+      onClick: () => showSuccess('Quick Action', 'New Observation form will open'),
+      adminOnly: false,
     },
     {
-      label: 'Add User',
-      icon: 'users',
-      action: () => showSuccess('Coming Soon', 'User management feature will be available soon.'),
+      name: 'Emergency Alert',
+      onClick: () => showSuccess('Alert', 'Emergency alert sent'),
       adminOnly: true,
     },
   ];
 
-  const { user } = useAuth();
+  if (!user) return null;
 
   return (
-    <div className="px-4 py-6 border-t border-gray-200">
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+    <div className="px-4 py-3 border-t border-gray-200">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
         Quick Actions
       </h3>
       <div className="space-y-2">
@@ -163,11 +146,10 @@ const QuickActions: React.FC = () => {
           .map((action, index) => (
           <button
             key={index}
-            onClick={action.action}
-            className="flex items-center space-x-3 w-full px-3 py-2 text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+            onClick={action.onClick}
+            className="w-full text-left px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
           >
-            <Icon name={action.icon} className="w-4 h-4 text-gray-400" />
-            <span>{action.label}</span>
+            {action.name}
           </button>
         ))}
       </div>
@@ -175,8 +157,8 @@ const QuickActions: React.FC = () => {
   );
 };
 
-// User info component
-const UserInfo: React.FC = () => {
+// User profile section
+const UserProfileSection: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { showSuccess } = useNotification();
@@ -186,40 +168,21 @@ const UserInfo: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      showSuccess('Signed Out', 'You have been successfully signed out.');
+      showSuccess('Logged Out', 'You have been successfully logged out.');
       navigate(ROUTES.LOGIN);
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
-  const getInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase())
-      .join('')
-      .substring(0, 2);
-  };
-
-  const getRoleColor = (role: string): string => {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return 'text-red-600 bg-red-100';
-      case 'user':
-        return 'text-blue-600 bg-blue-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
-
   return (
-    <div className="px-4 py-6 border-t border-gray-200">
+    <div className="px-4 py-3 border-t border-gray-200">
       <div className="flex items-center space-x-3 mb-4">
         <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full font-medium">
-          {getInitials(user.name)}
+          {getInitials(user.name || user.email)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{user.name || user.email}</p>
           <p className="text-xs text-gray-500 truncate">{user.email}</p>
         </div>
       </div>
@@ -230,35 +193,57 @@ const UserInfo: React.FC = () => {
         </span>
       </div>
 
-      <div className="space-y-1">
-        <Link
-          to={ROUTES.PROFILE}
-          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-        >
-          <Icon name="users" className="w-4 h-4 text-gray-400" />
-          <span>Profile</span>
-        </Link>
-
-        <button
-          onClick={handleLogout}
-          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-        >
-          <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span>Sign Out</span>
-        </button>
-      </div>
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center px-3 py-2 text-sm text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+      >
+        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Sign Out
+      </button>
     </div>
   );
 };
 
-// Main Sidebar component
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
+// Menu item component
+const MenuItem: React.FC<{ item: MenuItem; onClick?: () => void }> = ({ item, onClick }) => {
   const location = useLocation();
+  const isActive = location.pathname === item.path;
+
+  return (
+    <li>
+      <Link
+        to={item.path}
+        onClick={onClick}
+        className={`
+          group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+          ${isActive
+            ? 'bg-blue-100 text-blue-900'
+            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+          }
+        `}
+      >
+        <Icon
+          name={item.icon}
+          className={`
+            mr-3 h-5 w-5 transition-colors
+            ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
+          `}
+        />
+        {item.name}
+      </Link>
+    </li>
+  );
+};
+
+// Main Sidebar component
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
-  // Check if user has access to a menu item
+  if (!user) return null;
+
+  // Check if user has access to menu item
   const hasAccess = (item: MenuItem): boolean => {
     if (!user || !item.roles.length) return true;
     return item.roles.includes(user.role);
@@ -269,38 +254,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity md:hidden z-40"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
-      <aside
+      <div
         className={`
-          fixed top-0 left-0 z-30 h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out
-          lg:translate-x-0 lg:static lg:inset-0
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out
+          md:translate-x-0 md:static md:inset-0
+          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         <div className="flex flex-col h-full">
-          {/* Logo section */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
             <Link to={ROUTES.DASHBOARD} className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">D</span>
+                <span className="text-white font-bold text-lg">S</span>
               </div>
               <span className="text-xl font-semibold text-gray-900">
-                {APP_NAME.split(' ')[0]}
+                {APP_CONFIG.APP_NAME.split(' ')}
               </span>
             </Link>
 
             {/* Close button for mobile */}
             <button
               onClick={onClose}
-              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 md:hidden"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -308,16 +293,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
             </button>
           </div>
 
-          {/* Navigation menu */}
+          {/* Navigation */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto">
             <ul className="space-y-1">
               {filteredMenuItems.map((item, index) => (
                 <MenuItem
                   key={index}
                   item={item}
-                  isActive={location.pathname === item.path}
-                  hasAccess={hasAccess(item)}
-                  onItemClick={onClose}
+                  onClick={onClose} // Close sidebar on mobile when item is clicked
                 />
               ))}
             </ul>
@@ -326,10 +309,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
           {/* Quick Actions */}
           <QuickActions />
 
-          {/* User Info */}
-          <UserInfo />
+          {/* User Profile Section */}
+          <UserProfileSection />
         </div>
-      </aside>
+      </div>
     </>
   );
 };

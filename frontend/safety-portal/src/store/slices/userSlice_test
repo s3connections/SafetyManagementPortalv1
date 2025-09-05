@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { User, UserRole, ApiResponse, PaginatedResponse } from '../types';
+import { User, UserRole, ApiResponse, PaginatedResponse } from '../../types';
 
 // User state interface
 interface UserState {
@@ -446,15 +446,15 @@ export const {
 } = userSlice.actions;
 
 // Export reducer
-export default userSlice.reducer;
+export default {};
 
 // Selectors
-export const selectUsers = (state: { users: UserState }) => state.users.users;
-export const selectCurrentUser = (state: { users: UserState }) => state.users.currentUser;
-export const selectAuthenticatedUser = (state: { users: UserState }) => state.users.authenticatedUser;
-export const selectUserLoading = (state: { users: UserState }) => state.users.loading;
-export const selectUserError = (state: { users: UserState }) => state.users.error;
-export const selectUserTotalCount = (state: { users: UserState }) => state.users.totalCount;
-export const selectUserCurrentPage = (state: { users: UserState }) => state.users.currentPage;
-export const selectUserPageSize = (state: { users: UserState }) => state.users.pageSize;
-export const selectIsAuthenticated = (state: { users: UserState }) => state.users.isAuthenticated;
+//export const selectUsers = (state: { users: UserState }) => state.users.users;
+//export const selectCurrentUser = (state: { users: UserState }) => state.users.currentUser;
+//export const selectAuthenticatedUser = (state: { users: UserState }) => state.users.authenticatedUser;
+//export const selectUserLoading = (state: { users: UserState }) => state.users.loading;
+//export const selectUserError = (state: { users: UserState }) => state.users.error;
+//export const selectUserTotalCount = (state: { users: UserState }) => state.users.totalCount;
+//export const selectUserCurrentPage = (state: { users: UserState }) => state.users.currentPage;
+//export const selectUserPageSize = (state: { users: UserState }) => state.users.pageSize;
+//export const selectIsAuthenticated = (state: { users: UserState }) => state.users.isAuthenticated;

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ApiResponse, PaginatedResponse, /* other types */ } from '../types';
+import { ApiResponse, PaginatedResponse, /* other types */ } from '../../types';
 
 // Audit state interface
 interface AuditState {
@@ -384,4 +384,4 @@ export const selectAuditFilters = (state: { audit: AuditState }) => state.audit.
 export const selectAuditPagination = (state: { audit: AuditState }) => state.audit.pagination;
 
 // Export reducer
-export default auditSlice.reducer;
+export default {};

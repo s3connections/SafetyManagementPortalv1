@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
-    public class Permit : BaseEntity
+    public class Permit
     {
+        public int Id { get; set; }
+
         [Required]
-        [StringLength(50)]
+        [StringLength(100)]
         public string PermitNumber { get; set; } = string.Empty;
 
         [Required]
@@ -18,61 +19,69 @@ namespace Backend.Models
         public string? Description { get; set; }
 
         public int PermitTypeId { get; set; }
-        public PermitType? PermitType { get; set; }
-
-        public int RequestorId { get; set; }
-        public User? Requestor { get; set; }
 
         public int PlantId { get; set; }
-        public Plant? Plant { get; set; }
 
-        public int DepartmentId { get; set; }
-        public Department? Department { get; set; }
+        public int? LocationId { get; set; }
+
+        public int? DepartmentId { get; set; }
 
         [Required]
-        public PermitStatus Status { get; set; } = PermitStatus.Draft;
+        public string RequestedById { get; set; } = string.Empty;
 
-        public Priority Priority { get; set; } = Priority.Medium;
+        public string? ApprovedById { get; set; }
 
         public DateTime RequestedDate { get; set; } = DateTime.UtcNow;
-        public DateTime? RequiredDate { get; set; }
+
+        public DateTime ValidFrom { get; set; }
+
+        public DateTime ValidTo { get; set; }
+
         public DateTime? ApprovedDate { get; set; }
-        public DateTime? ValidFrom { get; set; }
-        public DateTime? ValidTo { get; set; }
 
-        public int? ApproverId { get; set; }
-        public User? Approver { get; set; }
-
-        [StringLength(1000)]
-        public string? ApprovalComments { get; set; }
-
-        [StringLength(1000)]
-        public string? RejectionReason { get; set; }
+        [StringLength(50)]
+        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, Expired, Cancelled
 
         [StringLength(500)]
-        public string? WorkLocation { get; set; }
+        public string? ApprovalComments { get; set; }
 
-        [StringLength(2000)]
-        public string? SafetyPrecautions { get; set; }
+        [StringLength(500)]
+        public string? RejectionReason { get; set; }
+
+        public int Priority { get; set; } = 1; // 1=Low, 2=Medium, 3=High, 4=Critical
 
         [StringLength(1000)]
-        public string? EquipmentRequired { get; set; }
+        public string? SafetyRequirements { get; set; }
 
-        public bool IsEmergency { get; set; } = false;
+        [StringLength(1000)]
+        public string? SpecialInstructions { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public virtual ICollection<PermitApprovalHistory> ApprovalHistory { get; set; } = new List<PermitApprovalHistory>();
-        public virtual ICollection<PermitQuestionResponse> QuestionResponses { get; set; } = new List<PermitQuestionResponse>();
-    }
+        [ForeignKey("PermitTypeId")]
+        public virtual PermitType PermitType { get; set; } = null!;
 
-    public enum PermitStatus
-    {
-        Draft = 1,
-        Submitted = 2,
-        UnderReview = 3,
-        Approved = 4,
-        Rejected = 5,
-        Expired = 6,
-        Cancelled = 7
+        [ForeignKey("PlantId")]
+        public virtual Plant Plant { get; set; } = null!;
+
+        [ForeignKey("LocationId")]
+        public virtual Location? Location { get; set; }
+
+        [ForeignKey("DepartmentId")]
+        public virtual Department? Department { get; set; }
+
+        [ForeignKey("RequestedById")]
+        public virtual User RequestedBy { get; set; } = null!;
+
+        [ForeignKey("ApprovedById")]
+        public virtual User? ApprovedBy { get; set; }
+
+        public virtual ICollection<PermitQuestionResponse> PermitQuestionResponses { get; set; } = new List<PermitQuestionResponse>();
+        public virtual ICollection<PermitApprovalHistory> PermitApprovalHistories { get; set; } = new List<PermitApprovalHistory>();
+        public virtual ICollection<Employee> WorkersAssigned { get; set; } = new List<Employee>();
+        public virtual ICollection<Employee> SupervisorsAssigned { get; set; } = new List<Employee>();
     }
 }

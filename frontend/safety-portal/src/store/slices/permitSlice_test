@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Permit, PermitStatus, PermitType, ApiResponse, PaginatedResponse } from '../types';
-import { ApiResponse, PaginatedResponse, /* other types */ } from '../types';
+import { Permit, PermitStatus, PermitType } from '../../types';
+import { ApiResponse, PaginatedResponse, /* other types */ } from '../../types';
 
 // Permit state interface
 interface PermitState {
@@ -272,13 +272,13 @@ export const {
 } = permitSlice.actions;
 
 // Export reducer
-export default permitSlice.reducer;
+export default {};
 
 // Selectors
-export const selectPermits = (state: { permits: PermitState }) => state.permits.permits;
-export const selectCurrentPermit = (state: { permits: PermitState }) => state.permits.currentPermit;
-export const selectPermitLoading = (state: { permits: PermitState }) => state.permits.loading;
-export const selectPermitError = (state: { permits: PermitState }) => state.permits.error;
-export const selectPermitTotalCount = (state: { permits: PermitState }) => state.permits.totalCount;
-export const selectPermitCurrentPage = (state: { permits: PermitState }) => state.permits.currentPage;
-export const selectPermitPageSize = (state: { permits: PermitState }) => state.permits.pageSize;
+//export const selectPermits = (state: { permits: PermitState }) => state.permits.permits;
+//export const selectCurrentPermit = (state: { permits: PermitState }) => state.permits.currentPermit;
+//export const selectPermitLoading = (state: { permits: PermitState }) => state.permits.loading;
+//export const selectPermitError = (state: { permits: PermitState }) => state.permits.error;
+//export const selectPermitTotalCount = (state: { permits: PermitState }) => state.permits.totalCount;
+//export const selectPermitCurrentPage = (state: { permits: PermitState }) => state.permits.currentPage;
+//export const selectPermitPageSize = (state: { permits: PermitState }) => state.permits.pageSize;

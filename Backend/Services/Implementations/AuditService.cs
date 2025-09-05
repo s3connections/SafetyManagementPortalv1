@@ -1,229 +1,32 @@
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.Audit;
 using Backend.DTOs.Common;
 using Backend.Models;
 using Backend.Services.Interfaces;
-
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 namespace Backend.Services.Implementations
 {
     public class AuditService : BaseService<Audit, AuditDto, CreateAuditDto, UpdateAuditDto>, IAuditService
     {
-        public AuditService(ApplicationDbContext context, IMapper mapper, ILogger<AuditService> logger)
-            : base(context, mapper, logger)
+        public AuditService(SafetyManagementContext ctx) : base(ctx) { }
+        private SafetyManagementContext C => (SafetyManagementContext)_context;
+        public override async Task<PagedResult<AuditDto>> GetAllAsync(SearchFilter f)
         {
+            var q = C.Audits.Where(a => !a.IsDeleted);
+            var total = await q.CountAsync();
+            var data = await q.Skip((f.PageNumber-1)*f.PageSize).Take(f.PageSize).Select(a=> new AuditDto { Id=a.Id, Title=a.Title, AuditNumber=a.AuditNumber, Status=a.Status}).ToListAsync();
+            return new PagedResult<AuditDto>{Items=data,TotalItems=total,PageNumber=f.PageNumber,PageSize=f.PageSize,TotalPages=(int)Math.Ceiling((double)total/f.PageSize)};
         }
-
-        public async Task<ApiResponse<AuditDto>> StartAuditAsync(int auditId)
-        {
-            try
-            {
-                var audit = await _context.Audits.FindAsync(auditId);
-                if (audit == null)
-                {
-                    return ApiResponse<AuditDto>.Failure("Audit not found");
-                }
-
-                if (audit.Status != AuditStatus.Scheduled)
-                {
-                    return ApiResponse<AuditDto>.Failure("Audit must be in scheduled status to start");
-                }
-
-                audit.Status = AuditStatus.InProgress;
-                audit.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                var auditDto = _mapper.Map<AuditDto>(audit);
-                return ApiResponse<AuditDto>.Success(auditDto, "Audit started successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error starting audit {AuditId}", auditId);
-                return ApiResponse<AuditDto>.Failure("An error occurred while starting the audit");
-            }
-        }
-
-        public async Task<ApiResponse<AuditDto>> CompleteAuditAsync(int auditId, int? score = null, string? remarks = null)
-        {
-            try
-            {
-                var audit = await _context.Audits.FindAsync(auditId);
-                if (audit == null)
-                {
-                    return ApiResponse<AuditDto>.Failure("Audit not found");
-                }
-
-                if (audit.Status != AuditStatus.InProgress)
-                {
-                    return ApiResponse<AuditDto>.Failure("Audit must be in progress to complete");
-                }
-
-                audit.Status = AuditStatus.Completed;
-                audit.CompletedAt = DateTime.UtcNow;
-                audit.UpdatedAt = DateTime.UtcNow;
-                
-                if (score.HasValue)
-                {
-                    audit.Score = score.Value;
-                }
-
-                if (!string.IsNullOrEmpty(remarks))
-                {
-                    audit.Recommendations = remarks;
-                }
-
-                await _context.SaveChangesAsync();
-
-                var auditDto = _mapper.Map<AuditDto>(audit);
-                return ApiResponse<AuditDto>.Success(auditDto, "Audit completed successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error completing audit {AuditId}", auditId);
-                return ApiResponse<AuditDto>.Failure("An error occurred while completing the audit");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByStatusAsync(AuditStatus status)
-        {
-            try
-            {
-                var audits = await _context.Audits
-                    .Where(a => a.Status == status)
-                    .Include(a => a.Auditor)
-                    .Include(a => a.Plant)
-                    .Include(a => a.Department)
-                    .ToListAsync();
-
-                var auditDtos = _mapper.Map<IEnumerable<AuditDto>>(audits);
-                return ApiResponse<IEnumerable<AuditDto>>.Success(auditDtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audits by status {Status}", status);
-                return ApiResponse<IEnumerable<AuditDto>>.Failure("An error occurred while retrieving audits");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByAuditorAsync(int auditorId)
-        {
-            try
-            {
-                var audits = await _context.Audits
-                    .Where(a => a.AuditorId == auditorId)
-                    .Include(a => a.Auditor)
-                    .Include(a => a.Plant)
-                    .Include(a => a.Department)
-                    .ToListAsync();
-
-                var auditDtos = _mapper.Map<IEnumerable<AuditDto>>(audits);
-                return ApiResponse<IEnumerable<AuditDto>>.Success(auditDtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audits by auditor {AuditorId}", auditorId);
-                return ApiResponse<IEnumerable<AuditDto>>.Failure("An error occurred while retrieving audits");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByPlantAsync(int plantId)
-        {
-            try
-            {
-                var audits = await _context.Audits
-                    .Where(a => a.PlantId == plantId)
-                    .Include(a => a.Auditor)
-                    .Include(a => a.Plant)
-                    .Include(a => a.Department)
-                    .ToListAsync();
-
-                var auditDtos = _mapper.Map<IEnumerable<AuditDto>>(audits);
-                return ApiResponse<IEnumerable<AuditDto>>.Success(auditDtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audits by plant {PlantId}", plantId);
-                return ApiResponse<IEnumerable<AuditDto>>.Failure("An error occurred while retrieving audits");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByDepartmentAsync(int departmentId)
-        {
-            try
-            {
-                var audits = await _context.Audits
-                    .Where(a => a.DepartmentId == departmentId)
-                    .Include(a => a.Auditor)
-                    .Include(a => a.Plant)
-                    .Include(a => a.Department)
-                    .ToListAsync();
-
-                var auditDtos = _mapper.Map<IEnumerable<AuditDto>>(audits);
-                return ApiResponse<IEnumerable<AuditDto>>.Success(auditDtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audits by department {DepartmentId}", departmentId);
-                return ApiResponse<IEnumerable<AuditDto>>.Failure("An error occurred while retrieving audits");
-            }
-        }
-
-        public async Task<ApiResponse<IEnumerable<AuditDto>>> GetOverdueAuditsAsync()
-        {
-            try
-            {
-                var now = DateTime.UtcNow;
-                var audits = await _context.Audits
-                    .Where(a => a.Status == AuditStatus.Scheduled && a.ScheduledDate < now)
-                    .Include(a => a.Auditor)
-                    .Include(a => a.Plant)
-                    .Include(a => a.Department)
-                    .ToListAsync();
-
-                var auditDtos = _mapper.Map<IEnumerable<AuditDto>>(audits);
-                return ApiResponse<IEnumerable<AuditDto>>.Success(auditDtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting overdue audits");
-                return ApiResponse<IEnumerable<AuditDto>>.Failure("An error occurred while retrieving overdue audits");
-            }
-        }
-
-        public async Task<ApiResponse<AuditStatisticsDto>> GetAuditStatisticsAsync()
-        {
-            try
-            {
-                var audits = await _context.Audits.ToListAsync();
-                var now = DateTime.UtcNow;
-
-                var statistics = new AuditStatisticsDto
-                {
-                    TotalAudits = audits.Count,
-                    ScheduledAudits = audits.Count(a => a.Status == AuditStatus.Scheduled),
-                    InProgressAudits = audits.Count(a => a.Status == AuditStatus.InProgress),
-                    CompletedAudits = audits.Count(a => a.Status == AuditStatus.Completed),
-                    OverdueAudits = audits.Count(a => a.Status == AuditStatus.Scheduled && a.ScheduledDate < now),
-                    AuditsByType = audits.GroupBy(a => a.AuditType.ToString())
-                                        .ToDictionary(g => g.Key, g => g.Count()),
-                    AuditsByStatus = audits.GroupBy(a => a.Status.ToString())
-                                          .ToDictionary(g => g.Key, g => g.Count())
-                };
-
-                return ApiResponse<AuditStatisticsDto>.Success(statistics);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting audit statistics");
-                return ApiResponse<AuditStatisticsDto>.Failure("An error occurred while retrieving audit statistics");
-            }
-        }
-
-        protected override string GenerateNumber()
-        {
-            return $"AUD-{DateTime.Now:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
-        }
+        public override async Task<AuditDto> GetByIdAsync(int id){var a=await C.Audits.FirstOrDefaultAsync(x=>x.Id==id&&!x.IsDeleted);return a==null?null:new AuditDto{Id=a.Id,Title=a.Title,AuditNumber=a.AuditNumber,Status=a.Status};}
+        public override async Task<AuditDto> CreateAsync(CreateAuditDto d){var num=await GenerateAuditNumberAsync();var a=new Audit{Title=d.Title,AuditNumber=num,AuditTypeId=d.AuditTypeId,PlantId=d.PlantId,LocationId=d.LocationId,ScheduledDate=d.ScheduledDate,CreatedAt=DateTime.UtcNow,CreatedBy=1};C.Audits.Add(a);await C.SaveChangesAsync();return new AuditDto{Id=a.Id,AuditNumber=a.AuditNumber,Title=a.Title};}
+        public override async Task<AuditDto> UpdateAsync(int id,UpdateAuditDto d){var a=await C.Audits.FirstOrDefaultAsync(x=>x.Id==id&&!x.IsDeleted);if(a==null)return null;if(!string.IsNullOrEmpty(d.Title))a.Title=d.Title;a.UpdatedAt=DateTime.UtcNow;a.UpdatedBy=1;await C.SaveChangesAsync();return new AuditDto{Id=a.Id,Title=a.Title,AuditNumber=a.AuditNumber};}
+        public async Task<string> GenerateAuditNumberAsync(){var y=DateTime.Now.Year;var c=await C.Audits.CountAsync(a=>a.CreatedAt.Year==y);return $"AUD-{y}-{(c+1):D6}";}
+        public async Task<List<AuditDto>> GetAuditsByTypeAsync(int t)=>await C.Audits.Where(a=>a.AuditTypeId==t&&!a.IsDeleted).Select(a=>new AuditDto{Id=a.Id,Title=a.Title}).ToListAsync();
+        public async Task<List<AuditDto>> GetScheduledAuditsAsync()=>await C.Audits.Where(a=>a.Status=="Scheduled"&&!a.IsDeleted).Select(a=>new AuditDto{Id=a.Id,Title=a.Title}).ToListAsync();
+        public async Task<AuditQuestionResponseDto> AddQuestionResponseAsync(int id,CreateAuditQuestionResponseDto r){var qr=new AuditQuestionResponse{AuditId=id,QuestionId=r.QuestionId,Response=r.Response,Comments=r.Comments,IsCompliant=r.IsCompliant,CreatedAt=DateTime.UtcNow,CreatedBy=1};C.AuditQuestionResponses.Add(qr);await C.SaveChangesAsync();return new AuditQuestionResponseDto{Id=qr.Id,Response=qr.Response};}
     }
 }

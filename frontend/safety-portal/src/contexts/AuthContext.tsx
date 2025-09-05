@@ -1,19 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  API_BASE_URL, 
-  API_ENDPOINTS, 
-  STORAGE_KEYS, 
-  ROUTES, 
-  USER_ROLES, 
-  APP_NAME, 
-  SIDEBAR_MENU_ITEMS 
-} from '../constants';
+import { API_BASE_URL, API_ENDPOINTS, STORAGE_KEYS } from '../constants';
 import { User } from '../types';
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -34,12 +21,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize auth state from localStorage
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-        const userData = localStorage.getItem(STORAGE_KEYS.USER);
+        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+        const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
         
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
@@ -47,10 +33,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Failed to initialize auth:', error);
-        // Clear invalid data
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
       } finally {
         setIsLoading(false);
       }
@@ -76,10 +61,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok && data.success) {
         const { accessToken, refreshToken, user: userData } = data.data;
         
-        // Store tokens and user data
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
         
         setUser(userData);
         return true;
@@ -97,10 +81,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       
       if (token) {
-        // Call logout endpoint
         await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
           method: 'POST',
           headers: {
@@ -112,10 +95,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear all stored data
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
       setUser(null);
     }
   };
@@ -124,15 +106,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       
-      if (!refreshToken) {
-        return false;
-      }
+      if (!refreshToken) return false;
 
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
       });
 
@@ -141,13 +119,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok && data.success) {
         const { accessToken, user: userData } = data.data;
         
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
+        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
         
         setUser(userData);
         return true;
       } else {
-        // Refresh failed, logout user
         await logout();
         return false;
       }
@@ -180,17 +157,6 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-// Export constants for components
-export { 
-  API_BASE_URL, 
-  API_ENDPOINTS, 
-  STORAGE_KEYS, 
-  ROUTES, 
-  USER_ROLES, 
-  APP_NAME, 
-  SIDEBAR_MENU_ITEMS 
 };
 
 export default AuthProvider;

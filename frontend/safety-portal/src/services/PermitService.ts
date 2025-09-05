@@ -32,7 +32,7 @@ class AuditService {
   async getAudits(page = 1, limit = 10, filters?: any): Promise<PaginatedResponse<Audit>> {
     try {
       const params = { page, limit, ...filters };
-      const response = await httpClient.get(API_ENDPOINTS.AUDITS.LIST, { params });
+      const response = await httpClient.get(API_ENDPOINTS.AUDITS.BASE, { params });
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch audits');
@@ -123,4 +123,4 @@ class AuditService {
   }
 }
 
-export default new AuditService();
+export default new AuditService;

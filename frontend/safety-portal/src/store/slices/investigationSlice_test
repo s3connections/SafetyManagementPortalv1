@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ApiResponse, PaginatedResponse, /* other types */ } from '../types';
+import { ApiResponse, PaginatedResponse, /* other types */ } from '../../types';
 
 // Investigation types
 export interface Investigation {
@@ -317,13 +317,13 @@ export const {
 } = investigationSlice.actions;
 
 // Export reducer
-export default investigationSlice.reducer;
+export default {};
 
 // Selectors
-export const selectInvestigations = (state: { investigations: InvestigationState }) => state.investigations.investigations;
-export const selectCurrentInvestigation = (state: { investigations: InvestigationState }) => state.investigations.currentInvestigation;
-export const selectInvestigationLoading = (state: { investigations: InvestigationState }) => state.investigations.loading;
-export const selectInvestigationError = (state: { investigations: InvestigationState }) => state.investigations.error;
-export const selectInvestigationTotalCount = (state: { investigations: InvestigationState }) => state.investigations.totalCount;
-export const selectInvestigationCurrentPage = (state: { investigations: InvestigationState }) => state.investigations.currentPage;
-export const selectInvestigationPageSize = (state: { investigations: InvestigationState }) => state.investigations.pageSize;
+//export const selectInvestigations = (state: { investigations: InvestigationState }) => state.investigations.investigations;
+//export const selectCurrentInvestigation = (state: { investigations: InvestigationState }) => state.investigations.currentInvestigation;
+//export const selectInvestigationLoading = (state: { investigations: InvestigationState }) => state.investigations.loading;
+//export const selectInvestigationError = (state: { investigations: InvestigationState }) => state.investigations.error;
+//export const selectInvestigationTotalCount = (state: { investigations: InvestigationState }) => state.investigations.totalCount;
+//export const selectInvestigationCurrentPage = (state: { investigations: InvestigationState }) => state.investigations.currentPage;
+//export const selectInvestigationPageSize = (state: { investigations: InvestigationState }) => state.investigations.pageSize;

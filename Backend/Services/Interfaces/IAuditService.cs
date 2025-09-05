@@ -1,18 +1,16 @@
+using Backend.Models;
 using Backend.DTOs.Common;
 using Backend.DTOs.Audit;
-using Backend.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Backend.Services.Interfaces
 {
     public interface IAuditService : IBaseService<Audit, AuditDto, CreateAuditDto, UpdateAuditDto>
     {
-        Task<ApiResponse<AuditDto>> StartAuditAsync(int auditId);
-        Task<ApiResponse<AuditDto>> CompleteAuditAsync(int auditId, int? score = null, string? remarks = null);
-        Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByStatusAsync(AuditStatus status);
-        Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByAuditorAsync(int auditorId);
-        Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByPlantAsync(int plantId);
-        Task<ApiResponse<IEnumerable<AuditDto>>> GetAuditsByDepartmentAsync(int departmentId);
-        Task<ApiResponse<IEnumerable<AuditDto>>> GetOverdueAuditsAsync();
-        Task<ApiResponse<AuditStatisticsDto>> GetAuditStatisticsAsync();
+        Task<string> GenerateAuditNumberAsync();
+        Task<List<AuditDto>> GetScheduledAuditsAsync();
+        Task<List<AuditDto>> GetAuditsByTypeAsync(int auditTypeId);
+        Task<AuditQuestionResponseDto> AddQuestionResponseAsync(int auditId, CreateAuditQuestionResponseDto responseDto);
     }
 }

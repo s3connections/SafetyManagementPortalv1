@@ -1,40 +1,38 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
+    [Table("Departments")]
     public class Department : BaseEntity
     {
         [Required]
         [StringLength(100)]
-        public string Name { get; set; } = string.Empty;
-
+        public string Name { get; set; }
+        
         [Required]
         [StringLength(20)]
-        public string Code { get; set; } = string.Empty;
-
+        public string Code { get; set; }
+        
         [StringLength(500)]
         public string? Description { get; set; }
-
-        public int PlantId { get; set; }
-        public Plant? Plant { get; set; }
-
-        [StringLength(100)]
-        public string? ManagerName { get; set; }
-
-        [EmailAddress]
-        [StringLength(255)]
-        public string? ManagerEmail { get; set; }
-
-        [StringLength(20)]
-        public string? ContactNumber { get; set; }
-
+        
+        public int? ParentDepartmentId { get; set; }
+        
+        [ForeignKey("ParentDepartmentId")]
+        public virtual Department? ParentDepartment { get; set; }
+        
+        public int? HoDId { get; set; }
+        
+        [ForeignKey("HoDId")]
+        public virtual Employee? HoD { get; set; }
+        
+        [Required]
         public bool IsActive { get; set; } = true;
-
-        // Navigation properties
-        public virtual ICollection<User> Users { get; set; } = new List<User>();
-        public virtual ICollection<Audit> Audits { get; set; } = new List<Audit>();
-        public virtual ICollection<Permit> Permits { get; set; } = new List<Permit>();
-        public virtual ICollection<IncidentObservation> Observations { get; set; } = new List<IncidentObservation>();
+        
+        // Navigation Properties
+        public virtual ICollection<Department> SubDepartments { get; set; } = new List<Department>();
+        public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
     }
 }
