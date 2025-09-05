@@ -8,7 +8,10 @@ namespace Backend.Dtos.Observation
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public ObservationType ObservationType { get; set; }
-        public Priority Priority { get; set; }
+        
+        // ✅ FIXED: Use PriorityLevel enum instead of Priority entity
+        public PriorityLevel Priority { get; set; }
+        
         public ObservationStatus Status { get; set; }
         public string? Location { get; set; }
         public string TicketNumber { get; set; } = string.Empty;
@@ -18,20 +21,18 @@ namespace Backend.Dtos.Observation
         public string? ImagePath { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        
+
         // User information
         public int ReportedByUserId { get; set; }
         public string ReportedByUserName { get; set; } = string.Empty;
         public string ReportedByUserEmail { get; set; } = string.Empty;
-        
         public int? AssignedToUserId { get; set; }
         public string? AssignedToUserName { get; set; }
         public string? AssignedToUserEmail { get; set; }
-        
+
         // Plant and Department information
         public int? PlantId { get; set; }
         public string? PlantName { get; set; }
-        
         public int? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
     }

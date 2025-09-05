@@ -17,13 +17,7 @@ import {
   Alert,
   IconButton,
   Button,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  Divider
 } from '@mui/material';
 
 import {
@@ -46,18 +40,17 @@ import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 
 import ObservationService from '../services/ObservationService';
 import AuditService from '../services/AuditService';
-import { Observation, Audit } from '../types';
+import { Observation, Audit, ObservationType, Priority, ObservationStatus } from '../types';
 
-// ✅ FIXED: Create a proper extended interface with a different name
+// ✅ FIXED: Interface extends Observation with correct types
 interface ObservationData extends Observation {
   slaDeadline?: string;
   ticketNumber: string;
   createdAt: string;
-  status: string;
-  priority: string;
-  observationType: string;
+  status: ObservationStatus;
+  priority: Priority;
+  observationType: ObservationType;
   description: string;
-  id: string;
   reporter?: {
     firstName: string;
     lastName: string;
@@ -103,11 +96,9 @@ const SafetyDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // ✅ FIXED: Use getAllObservations instead of getObservations
       const observationsResponse = await ObservationService.getAllObservations();
       const auditsResponse = await AuditService.getAudits(1, 100);
 
-      // ✅ FIXED: Proper type handling with fallback to empty array
       const observations: ObservationData[] = observationsResponse.success 
         ? (observationsResponse.data || []) 
         : [];
@@ -115,19 +106,20 @@ const SafetyDashboard: React.FC = () => {
         ? (auditsResponse.data || []) 
         : [];
 
-      // Process observations data with proper typing
+      // ✅ FIXED: Process observations with correct enum values
       const observationsByPriority = [
         { name: 'High', value: observations.filter((o: ObservationData) => o.priority === 'High').length, color: '#f44336' },
         { name: 'Medium', value: observations.filter((o: ObservationData) => o.priority === 'Medium').length, color: '#ff9800' },
-        { name: 'Low', value: observations.filter((o: ObservationData) => o.priority === 'Low').length, color: '#4caf50' }
+        { name: 'Low', value: observations.filter((o: ObservationData) => o.priority === 'Low').length, color: '#4caf50' },
+        { name: 'Critical', value: observations.filter((o: ObservationData) => o.priority === 'Critical').length, color: '#9c27b0' }
       ];
 
+      // ✅ FIXED: Use correct ObservationType enum values
       const observationsByType = [
-        { name: 'Unsafe Condition', value: observations.filter((o: ObservationData) => o.observationType === 'Unsafe_Condition').length },
-        { name: 'Unsafe Act', value: observations.filter((o: ObservationData) => o.observationType === 'Unsafe_Act').length },
-        { name: 'Near Miss', value: observations.filter((o: ObservationData) => o.observationType === 'Near_Miss').length },
-        { name: 'Good Practice', value: observations.filter((o: ObservationData) => o.observationType === 'Good_Practice').length },
-        { name: 'Work Stoppage', value: observations.filter((o: ObservationData) => o.observationType === 'Work_Stoppage').length }
+        { name: 'Unsafe Act', value: observations.filter((o: ObservationData) => o.observationType === 'UnsafeAct').length },
+        { name: 'Unsafe Condition', value: observations.filter((o: ObservationData) => o.observationType === 'UnsafeCondition').length },
+        { name: 'Near Miss', value: observations.filter((o: ObservationData) => o.observationType === 'NearMiss').length },
+        { name: 'Good Practice', value: observations.filter((o: ObservationData) => o.observationType === 'GoodPractice').length }
       ].filter(item => item.value > 0);
 
       // Generate trend data for the last 30 days
@@ -286,7 +278,7 @@ const SafetyDashboard: React.FC = () => {
               </Card>
             </Grid>
 
-           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -397,7 +389,7 @@ const SafetyDashboard: React.FC = () => {
             </Grid>
 
             {/* Recent Activities */}
-            <Grid size={{ xs: 12,md: 6 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>

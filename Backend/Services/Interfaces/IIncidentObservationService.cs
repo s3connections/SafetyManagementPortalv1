@@ -1,5 +1,6 @@
 using Backend.Models;
 using Backend.DTOs.Incident;
+using Backend.Enums;
 
 namespace Backend.Services.Interfaces
 {

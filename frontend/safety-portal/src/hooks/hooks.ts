@@ -1,88 +1,10 @@
-import { useState, useEffect, useRef, RefObject } from 'react';
+import { useEffect, useRef, useState, useCallback, RefObject } from 'react';
 
-// Custom hook for local storage
-export const useLocalStorage = <T>(
-  key: string,
-  initialValue: T
-): [T, (value: T | ((val: T) => T)) => void] => {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
-    }
-  });
-
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
-    }
-  };
-
-  return [storedValue, setValue];
-};
-
-// Custom hook for debounced value
-export const useDebounce = <T>(value: T, delay: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-};
-
-// ✅ FIXED: Custom hook for previous value
-export const usePrevious = <T>(value: T): T | undefined => {
-  const ref = useRef<T | undefined>(undefined); // ✅ FIXED: Explicit undefined initial value
-  
-  useEffect(() => {
-    ref.current = value;
-  });
-  
-  return ref.current;
-};
-
-// Custom hook for window size
-export const useWindowSize = () => {
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return windowSize;
-};
-
-// ✅ FIXED: Custom hook for click outside - proper generic constraint
-export const useClickOutside = <T extends HTMLElement>(
+// ✅ FIXED: Custom hook for outside click detection
+export const useClickOutside = <T extends HTMLElement = HTMLElement>(
   callback: () => void
 ): RefObject<T> => {
-  const ref = useRef<T>(null); // ✅ FIXED: Proper generic typing with constraint
+  const ref = useRef<T>(null);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -92,7 +14,9 @@ export const useClickOutside = <T extends HTMLElement>(
     };
 
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+    };
   }, [callback]);
 
   return ref;
@@ -105,63 +29,67 @@ export const useKeyboardShortcut = (
   node: HTMLElement | null = null
 ) => {
   useEffect(() => {
-    const targetNode = node ?? document;
-    const handleKeyPress = (event: KeyboardEvent) => {
-      const pressedKeys: string[] = []; // ✅ FIXED: Explicit typing
-      
-      if (event.ctrlKey) pressedKeys.push('ctrl');
-      if (event.shiftKey) pressedKeys.push('shift');
-      if (event.altKey) pressedKeys.push('alt');
-      if (event.metaKey) pressedKeys.push('meta');
-      
-      pressedKeys.push(event.key.toLowerCase());
-      
-      const normalizedKeys = keys.map(key => key.toLowerCase());
-      
-      if (normalizedKeys.every(key => pressedKeys.includes(key)) && 
-          normalizedKeys.length === pressedKeys.length) {
-        event.preventDefault();
-        callback(event);
+    const targetNode = node || document;
+    
+    // ✅ FIXED: Proper event handler typing
+    const handleKeyPress = (event: Event) => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keys.every(key => {
+        // Handle modifier keys
+        if (key === 'ctrl') return keyboardEvent.ctrlKey;
+        if (key === 'shift') return keyboardEvent.shiftKey;
+        if (key === 'alt') return keyboardEvent.altKey;
+        if (key === 'meta') return keyboardEvent.metaKey;
+        
+        // Handle regular keys
+        return keyboardEvent.key.toLowerCase() === key.toLowerCase();
+      })) {
+        callback(keyboardEvent);
       }
     };
 
-    targetNode.addEventListener('keydown', handleKeyPress as EventListener);
-    return () => targetNode.removeEventListener('keydown', handleKeyPress as EventListener);
+    targetNode.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      targetNode.removeEventListener('keydown', handleKeyPress);
+    };
   }, [keys, callback, node]);
 };
 
-// ✅ FIXED: Custom hook for intersection observer - return proper types
+// ✅ FIXED: Custom hook for intersection observer
 export const useIntersectionObserver = (
-  options?: IntersectionObserverInit
-): [RefObject<HTMLElement>, boolean] => { // ✅ FIXED: Specific element type
-  const targetRef = useRef<HTMLElement>(null);
+  options: IntersectionObserverInit = {}
+): [RefObject<HTMLElement>, boolean] => {
   const [isIntersecting, setIsIntersecting] = useState(false);
+  const targetRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const target = targetRef.current;
-    if (!target) return;
-
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);
     }, options);
 
-    observer.observe(target);
+    const currentTarget = targetRef.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
 
     return () => {
-      observer.unobserve(target);
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
     };
   }, [options]);
 
-  return [targetRef, isIntersecting]; // ✅ FIXED: Return properly typed RefObject
+  return [targetRef, isIntersecting];
 };
 
-// Custom hook for toggle
-export const useToggle = (initialValue = false): [boolean, () => void] => {
-  const [value, setValue] = useState(initialValue);
-
-  const toggle = () => {
-    setValue(prevValue => !prevValue);
-  };
-
-  return [value, toggle];
+// ✅ FIXED: Custom hook for previous value
+export const usePrevious = <T>(value: T): T | undefined => {
+  const ref = useRef<T | undefined>(undefined); // ✅ FIXED: Added undefined initial value
+  
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  
+  return ref.current;
 };

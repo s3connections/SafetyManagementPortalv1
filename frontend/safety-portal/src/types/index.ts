@@ -1,4 +1,4 @@
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data?: T;
@@ -6,7 +6,7 @@ export interface ApiResponse<T = any> {
   timestamp?: string;
 }
 
-export interface PaginatedResponse<T = any> {
+export interface PaginatedResponse<T> {
   success: boolean;
   message: string;
   data: T[];
@@ -35,7 +35,7 @@ export interface User {
 
 export type UserRole = 'admin' | 'manager' | 'supervisor' | 'employee' | 'auditor' | 'safety_officer';
 
-// Observation Types
+// ✅ UPDATED: Observation Types - Now aligned with backend C# enums
 export interface Observation {
   id: number;
   ticketNumber: string;
@@ -58,31 +58,42 @@ export interface Observation {
   updatedAt: string;
 }
 
-export type ObservationType = 'unsafe_act' | 'unsafe_condition' | 'near_miss' | 'good_practice';
-export type ObservationStatus = 'open' | 'in_progress' | 'completed' | 'closed' | 'cancelled';
-export type Priority = 'low' | 'medium' | 'high' | 'critical';
+// ✅ UPDATED: Match backend C# enum values (PascalCase)
+export type ObservationType = 'UnsafeAct' | 'UnsafeCondition' | 'NearMiss' | 'GoodPractice';
 
+// ✅ UPDATED: Match backend C# enum values (Resolved → Completed)
+export type ObservationStatus = 'Open' | 'InProgress' | 'Completed' | 'Closed' | 'Cancelled';
+
+// ✅ UPDATED: Match backend C# enum values (PascalCase)
+export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
+
+// ✅ UPDATED: CreateObservationDto to match backend exactly
 export interface CreateObservationDto {
   title: string;
   description: string;
   observationType: ObservationType;
   priority: Priority;
-  plantId: number;
-  departmentId: number;
-  location: string;
-  hazardCategoryId?: number;
-  hazardTypeId?: number;
-  assignedTo?: number;
+  location?: string;
   dueDate?: string;
+  reportedByUserId: number; // ✅ FIXED: Match backend property name
+  assignedToUserId?: number; // ✅ FIXED: Match backend property name
+  plantId?: number;
+  departmentId?: number;
 }
 
+// ✅ UPDATED: UpdateObservationDto to match backend exactly
 export interface UpdateObservationDto {
   title?: string;
   description?: string;
+  observationType?: ObservationType;
   priority?: Priority;
-  assignedTo?: number;
   status?: ObservationStatus;
+  location?: string;
   dueDate?: string;
+  resolutionNotes?: string;
+  assignedToUserId?: number;
+  plantId?: number;
+  departmentId?: number;
 }
 
 // Audit Types
@@ -130,19 +141,18 @@ export interface Permit {
 export type PermitType = 'hot_work' | 'confined_space' | 'height_work' | 'electrical' | 'excavation' | 'chemical';
 export type PermitStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'expired' | 'cancelled';
 
-// Form Data Types
+// ✅ UPDATED: Form Data Types to match new backend structure
 export interface ObservationFormData {
   title: string;
   description: string;
-  observationType?: ObservationType;
+  observationType: ObservationType;
   priority: Priority;
-  plantId: number;
-  departmentId: number;
   location: string;
-  hazardCategoryId?: number;
-  hazardTypeId?: number;
-  assignedTo?: number;
   dueDate?: string;
+  reportedByUserId: number;
+  assignedToUserId?: number;
+  plantId?: number;
+  departmentId?: number;
 }
 
 // Common Filter Types

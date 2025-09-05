@@ -12,7 +12,10 @@ namespace Backend.Dtos.Observation
         public string? Description { get; set; }
 
         public ObservationType? ObservationType { get; set; }
-        public Priority? Priority { get; set; }
+
+        // ✅ FIXED: Use PriorityLevel enum instead of Priority entity
+        public PriorityLevel? Priority { get; set; }
+
         public ObservationStatus? Status { get; set; }
 
         [MaxLength(100)]

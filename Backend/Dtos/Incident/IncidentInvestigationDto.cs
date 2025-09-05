@@ -1,116 +1,58 @@
-using Backend.Models;
 using System.ComponentModel.DataAnnotations;
+using Backend.Enums;
+using Backend.DTOs.Incident;
 
 
-
-namespace Backend.Dtos.Incident
+namespace Backend.DTOs.Incident
 {
-    public class IncidentObservationDto
+    public class IncidentInvestigationDto
     {
         public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public IncidentType? IncidentType { get; set; }
-        public IncidentSeverity Severity { get; set; }
-        public DateTime IncidentDate { get; set; }
-        public string? Location { get; set; }
+        
+        [Required]
         public string IncidentNumber { get; set; } = string.Empty;
-        public string? ImmediateActions { get; set; }
-        public string? RootCauseAnalysis { get; set; }
-        public string? CorrectiveActions { get; set; }
-        public string? PreventiveActions { get; set; }
-        public DateTime? InvestigationCompletedDate { get; set; }
-        public string? ImagePath { get; set; }
-        public bool RequiresReporting { get; set; }
-        public bool IsReportedToAuthorities { get; set; }
-        public DateTime? ReportedDate { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
         
-        // User information
-        public int ReportedByUserId { get; set; }
-        public string ReportedByUserName { get; set; } = string.Empty;
-        public string ReportedByUserEmail { get; set; } = string.Empty;
-        
-        public int? InvestigatedByUserId { get; set; }
-        public string? InvestigatedByUserName { get; set; }
-        public string? InvestigatedByUserEmail { get; set; }
-        
-        // Plant and Department information
-        public int? PlantId { get; set; }
-        public string? PlantName { get; set; }
-        
-        public int? DepartmentId { get; set; }
-        public string? DepartmentName { get; set; }
-    }
-
-    public class CreateIncidentObservationDto
-    {
         [Required]
-        [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(2000)]
-        public string Description { get; set; } = string.Empty;
-
-        [Required]
-        public IncidentType IncidentType { get; set; }
-
+        
+        public string? Description { get; set; }
+        
         [Required]
         public IncidentSeverity Severity { get; set; }
-
+        
+        [Required]
+        public string Location { get; set; } = string.Empty;
+        
         [Required]
         public DateTime IncidentDate { get; set; }
-
-        [MaxLength(100)]
-        public string? Location { get; set; }
-
-        [MaxLength(2000)]
-        public string? ImmediateActions { get; set; }
-
-        public bool RequiresReporting { get; set; } = false;
-
+        
         [Required]
-        public int ReportedByUserId { get; set; }
-
-        public int? PlantId { get; set; }
-        public int? DepartmentId { get; set; }
-    }
-
-    public class UpdateIncidentObservationDto
-    {
-        [MaxLength(200)]
-        public string? Title { get; set; }
-
-        [MaxLength(2000)]
-        public string? Description { get; set; }
-
-        public IncidentType? IncidentType { get; set; }
-        public IncidentSeverity? Severity { get; set; }
-        public DateTime? IncidentDate { get; set; }
-
-        [MaxLength(100)]
-        public string? Location { get; set; }
-
-        [MaxLength(2000)]
-        public string? ImmediateActions { get; set; }
-
-        [MaxLength(2000)]
-        public string? RootCauseAnalysis { get; set; }
-
-        [MaxLength(2000)]
+        public DateTime ReportedDate { get; set; }
+        
+        public DateTime? InvestigationStartDate { get; set; }
+        
+        public DateTime? InvestigationCompletionDate { get; set; }
+        
+        public string? InvestigationStatus { get; set; }
+        
+        public string? InvestigatorName { get; set; }
+        
+        public int? InvestigatorId { get; set; }
+        
+        public string? RootCause { get; set; }
+        
         public string? CorrectiveActions { get; set; }
-
-        [MaxLength(2000)]
+        
         public string? PreventiveActions { get; set; }
-
-        public bool? RequiresReporting { get; set; }
-        public bool? IsReportedToAuthorities { get; set; }
-        public DateTime? ReportedDate { get; set; }
-
-        public int? InvestigatedByUserId { get; set; }
-        public int? PlantId { get; set; }
-        public int? DepartmentId { get; set; }
+        
+        public bool IsCompleted { get; set; }
+        
+        public DateTime CreatedAt { get; set; }
+        
+        public DateTime? UpdatedAt { get; set; }
+        
+        // Navigation properties
+        public List<InvestigationWitnessDto>? Witnesses { get; set; }
+        public List<InvestigationTimelineDto>? Timeline { get; set; }
     }
 }

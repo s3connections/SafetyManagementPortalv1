@@ -23,6 +23,11 @@ export const ROUTES = {
 export type RouteKey = keyof typeof ROUTES;
 export type RoutePath = typeof ROUTES[RouteKey];
 
+export const checkIsCurrentPath = (routePath: string, currentPath: string): boolean => {
+  if (routePath === currentPath) {
+    return true;
+  }
+
 export const getRoute = (key: RouteKey, params?: Record<string, string | number>): string => {
   let route = ROUTES[key];
   if (params) {
@@ -39,6 +44,8 @@ export const isActiveRoute = (currentPath: string, routePath: string): boolean =
     return currentPath === routePath;
   }
   
-  const pathWithoutParams = routePath.split('/:'); // ✅ FIXED: Get first element
-  return currentPath.startsWith(pathWithoutParams);
+  
+  const pathWithoutParams = routePath.split('/:')[0]; // Add [0]
+return currentPath.startsWith(pathWithoutParams);
+}
 };

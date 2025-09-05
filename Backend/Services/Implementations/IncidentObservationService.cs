@@ -4,6 +4,7 @@ using Backend.Data;
 using Backend.Models;
 using Backend.Services.Interfaces;
 using Backend.DTOs.Incident;
+using Backend.Enums;
 
 namespace Backend.Services.Implementations
 {

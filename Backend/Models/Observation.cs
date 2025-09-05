@@ -3,24 +3,55 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
+    // ✅ UPDATED: Frontend-aligned enum values
     public enum ObservationType
     {
-        Safety,
-        Environmental,
-        Quality,
-        Security,
-        Other
+        [Display(Name = "Unsafe Act")]
+        UnsafeAct,
+        
+        [Display(Name = "Unsafe Condition")]
+        UnsafeCondition,
+        
+        [Display(Name = "Near Miss")]
+        NearMiss,
+        
+        [Display(Name = "Good Practice")]
+        GoodPractice
     }
 
-  
-
+    // ✅ UPDATED: Frontend-aligned enum values (Resolved → Completed)
     public enum ObservationStatus
     {
+        [Display(Name = "Open")]
         Open,
+        
+        [Display(Name = "In Progress")]
         InProgress,
-        Resolved,
+        
+        [Display(Name = "Completed")]
+        Completed,  // ✅ CHANGED: Was "Resolved"
+        
+        [Display(Name = "Closed")]
         Closed,
+        
+        [Display(Name = "Cancelled")]
         Cancelled
+    }
+
+    // ✅ NEW: Simple Priority enum to match frontend
+    public enum PriorityLevel
+    {
+        [Display(Name = "Low")]
+        Low = 1,
+        
+        [Display(Name = "Medium")]
+        Medium = 2,
+        
+        [Display(Name = "High")]
+        High = 3,
+        
+        [Display(Name = "Critical")]
+        Critical = 4
     }
 
     public class Observation : BaseEntity
@@ -38,6 +69,10 @@ namespace Backend.Models
 
         [Required]
         public ObservationStatus Status { get; set; } = ObservationStatus.Open;
+
+        // ✅ NEW: Added Priority field to match frontend expectations
+        [Required]
+        public PriorityLevel Priority { get; set; } = PriorityLevel.Low;
 
         [MaxLength(100)]
         public string? Location { get; set; }
