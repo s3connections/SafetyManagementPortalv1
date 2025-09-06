@@ -19,8 +19,6 @@ import {
   FormControl,
   InputLabel,
   Grid,
-  Card,
-  CardContent,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -32,15 +30,13 @@ import {
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
-  Assignment as AssignIcon,
-  FilterList as FilterIcon,
   Add as AddIcon,
   Refresh as RefreshIcon,
-  GetApp as ExportIcon
+  FilterList as FilterIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import ObservationService from '../services/ObservationService';
-import { Observation, ObservationType, Priority, ObservationStatus, ObservationStage } from '../types';
+import { ObservationType, Observation } from '../types';
 
 interface ObservationListProps {
   onViewObservation?: (observation: Observation) => void;
@@ -64,48 +60,31 @@ const ObservationList: React.FC<ObservationListProps> = ({
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
-    observationType: '',
-    plantId: '',
-    departmentId: ''
+    observationType: ''
   });
 
-  // Filter dialog
-  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
-
   const loadObservations = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      
-      // ✅ FIXED: Use getAllObservations instead of getObservations
       const response = await ObservationService.getAllObservations();
-
-      if (response.success && response.data) {
-        const allObservations = response.data;
-        
-        // Apply filters on client side (since API doesn't support pagination/filtering yet)
-        let filteredObservations = allObservations;
-        
-        if (filters.status) {
-          filteredObservations = filteredObservations.filter(obs => obs.status === filters.status);
-        }
-        if (filters.priority) {
-          filteredObservations = filteredObservations.filter(obs => obs.priority === filters.priority);
-        }
-        if (filters.observationType) {
-          filteredObservations = filteredObservations.filter(obs => obs.observationType === filters.observationType);
-        }
-        
-        // Pagination on client side
-        const startIndex = page * rowsPerPage;
-        const endIndex = startIndex + rowsPerPage;
-        const paginatedObservations = filteredObservations.slice(startIndex, endIndex);
-        
-        setObservations(paginatedObservations);
-        setTotalCount(filteredObservations.length);
-      } else {
-        setError('Failed to load observations');
+      if (!response.success || !response.data) {
+        setError(response.error || 'Failed to load');
+        return;
       }
+      let filtered = response.data as Observation[];
+      if (filters.status) {
+        filtered = filtered.filter(o => o.status === filters.status);
+      }
+      if (filters.priority) {
+        filtered = filtered.filter(o => o.priority === filters.priority);
+      }
+      if (filters.observationType) {
+        filtered = filtered.filter(o => o.observationType === filters.observationType);
+      }
+      setTotalCount(filtered.length);
+      const start = page * rowsPerPage;
+      setObservations(filtered.slice(start, start + rowsPerPage));
     } catch (err: any) {
       setError(err.message || 'Failed to load observations');
     } finally {
@@ -117,364 +96,155 @@ const ObservationList: React.FC<ObservationListProps> = ({
     loadObservations();
   }, [page, rowsPerPage, filters]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
 
   const handleFilterChange = (field: string, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    setPage(0); // Reset to first page when filters change
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      status: '',
-      priority: '',
-      observationType: '',
-      plantId: '',
-      departmentId: ''
-    });
+    setFilters(prev => ({ ...prev, [field]: value }));
     setPage(0);
   };
 
-  const getPriorityColor = (priority: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
-    switch (priority) {
-      case 'High': return 'error';
-      case 'Medium': return 'warning';
-      case 'Low': return 'success';
-      default: return 'default';
-    }
-  };
-
-  const getStatusColor = (status: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
-    switch (status) {
-      case 'Open': return 'primary';
-      case 'In_Progress': return 'info';
-      case 'Closed': return 'success';
-      case 'Re_Assigned': return 'warning';
-      case 'Wrongly_Assigned': return 'error';
-      default: return 'default';
-    }
-  };
-
-  if (error) {
-    return (
-      <Alert 
-        severity="error" 
-        action={
-          <Button color="inherit" size="small" onClick={loadObservations} disabled={loading}>
-            Retry
-          </Button>
-        }
-      >
-        {error}
-      </Alert>
-    );
-  }
-
   return (
-    <Box p={3}>
-      {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Safety Observations
-        </Typography>
-        <Box display="flex" gap={1}>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={loadObservations}
-            disabled={loading}
-          >
+    <Box>
+      <Grid container spacing={2} alignItems="center" mb={2}>
+        <Grid item>
+          <Typography variant="h5">Safety Observations</Typography>
+        </Grid>
+        <Grid item>
+          <Button onClick={loadObservations} disabled={loading} startIcon={<RefreshIcon />}>
             Refresh
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<FilterIcon />}
-            onClick={() => setFilterDialogOpen(true)}
-          >
-            Filter
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ExportIcon />}
-            disabled={observations.length === 0}
-          >
-            Export
-          </Button>
-          {onCreateObservation && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={onCreateObservation}
-            >
+        </Grid>
+        {onCreateObservation && (
+          <Grid item>
+            <Button variant="contained" onClick={onCreateObservation} startIcon={<AddIcon />}>
               New Observation
             </Button>
-          )}
-        </Box>
-      </Box>
-
-      {/* Statistics Cards */}
-      <Grid container spacing={3} mb={3}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Total Observations
-              </Typography>
-              <Typography variant="h4">
-                {totalCount}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Open
-              </Typography>
-              <Typography variant="h4">
-                {observations.filter(o => o.status === 'Open').length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                High Priority
-              </Typography>
-              <Typography variant="h4">
-                {observations.filter(o => o.priority === 'High').length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Overdue
-              </Typography>
-              <Typography variant="h4">
-                {observations.filter(o => o.slaDeadline && new Date(o.slaDeadline) < new Date()).length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+          </Grid>
+        )}
       </Grid>
 
-      {/* Data Table */}
+      {error && (
+        <Alert severity="error" action={
+          <Button color="inherit" size="small" onClick={loadObservations}>
+            Retry
+          </Button>
+        }>
+          {error}
+        </Alert>
+      )}
+
+      <Box mb={2} display="flex" gap={2}>
+        <FormControl>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={filters.status}
+            label="Status"
+            onChange={e => handleFilterChange('status', e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="Open">Open</MenuItem>
+            <MenuItem value="In_Progress">In Progress</MenuItem>
+            <MenuItem value="Closed">Closed</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl>
+          <InputLabel>Priority</InputLabel>
+          <Select
+            value={filters.priority}
+            label="Priority"
+            onChange={e => handleFilterChange('priority', e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="High">High</MenuItem>
+            <MenuItem value="Medium">Medium</MenuItem>
+            <MenuItem value="Low">Low</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl>
+          <InputLabel>Type</InputLabel>
+          <Select
+            value={filters.observationType}
+            label="Type"
+            onChange={e => handleFilterChange('observationType', e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            {Object.values(ObservationType).map(type => (
+              <MenuItem key={type} value={type}>{type.replace('_', ' ')}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
       <Paper>
         <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Ticket #</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Reported By</TableCell>
-                <TableCell>Assigned To</TableCell>
-                <TableCell>Created Date</TableCell>
-                <TableCell>SLA Deadline</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
+          {loading ? (
+            <Box p={4} textAlign="center"><CircularProgress /></Box>
+          ) : (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={11} align="center">
-                    <CircularProgress />
-                  </TableCell>
+                  <TableCell>Ticket</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ) : observations.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={11} align="center">
-                    <Typography variant="body1" color="textSecondary">
-                      No observations found
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                observations.map((observation) => (
-                  <TableRow key={observation.id}>
+              </TableHead>
+              <TableBody>
+                {observations.map(obs => (
+                  <TableRow key={obs.id}>
+                    <TableCell>{obs.ticketNumber}</TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="primary">
-                        {observation.ticketNumber}
-                      </Typography>
+                      {obs.description.length > 50
+                        ? `${obs.description.slice(0, 50)}…`
+                        : obs.description}
                     </TableCell>
                     <TableCell>
-                      <Chip 
-                        label={observation.observationType} 
-                        size="small" 
-                        variant="outlined"
-                      />
+                      <Chip label={obs.priority} color={
+                        obs.priority === 'High' ? 'error' :
+                        obs.priority === 'Medium' ? 'warning' :
+                        'success'
+                      } />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">
-                        {observation.description.length > 100
-                          ? `${observation.description.substring(0, 100)}...`
-                          : observation.description
-                        }
-                      </Typography>
+                      <Chip label={obs.status} color={
+                        obs.status === 'Open' ? 'primary' :
+                        obs.status === 'In_Progress' ? 'info' :
+                        'default'
+                      } />
                     </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={observation.priority} 
-                        color={getPriorityColor(observation.priority)} 
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={observation.status} 
-                        color={getStatusColor(observation.status)} 
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{observation.location}</TableCell>
-                    <TableCell>
-                      {(observation as any).reporter?.firstName} {(observation as any).reporter?.lastName}
-                    </TableCell>
-                    <TableCell>
-                      {(observation as any).assignedUser?.firstName} {(observation as any).assignedUser?.lastName || 'Unassigned'}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(observation.createdAt), 'MMM dd, yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      {observation.slaDeadline ? (
-                        <Typography variant="body2">
-                          {format(new Date(observation.slaDeadline), 'MMM dd, yyyy')}
-                        </Typography>
-                      ) : '-'}
-                    </TableCell>
+                    <TableCell>{obs.observationType.replace('_', ' ')}</TableCell>
                     <TableCell>
                       {onViewObservation && (
-                        <Tooltip title="View Details">
-                          <IconButton
-                            size="small"
-                            onClick={() => onViewObservation(observation)}
-                            color="primary"
-                          >
-                            <ViewIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton onClick={() => onViewObservation(obs)}><ViewIcon /></IconButton>
                       )}
                       {onEditObservation && (
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={() => onEditObservation(observation)}
-                            color="secondary"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton onClick={() => onEditObservation(obs)}><EditIcon /></IconButton>
                       )}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </TableContainer>
-        
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={totalCount}
-          rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-
-      {/* Filter Dialog */}
-      <Dialog open={filterDialogOpen} onClose={() => setFilterDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Filter Observations</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={3} sx={{ mt: 1 }}>
-            <Grid size={{ xs: 12, sm: 6}}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                  label="Status"
-                >
-                  <MenuItem value="">All Statuses</MenuItem>
-                  <MenuItem value="Open">Open</MenuItem>
-                  <MenuItem value="In_Progress">In Progress</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                  <MenuItem value="Re_Assigned">Re-Assigned</MenuItem>
-                  <MenuItem value="Wrongly_Assigned">Wrongly Assigned</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6}}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={filters.priority}
-                  onChange={(e) => handleFilterChange('priority', e.target.value)}
-                  label="Priority"
-                >
-                  <MenuItem value="">All Priorities</MenuItem>
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="Low">Low</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6}}>
-              <FormControl fullWidth>
-                <InputLabel>Observation Type</InputLabel>
-                <Select
-                  value={filters.observationType}
-                  onChange={(e) => handleFilterChange('observationType', e.target.value)}
-                  label="Observation Type"
-                >
-                  <MenuItem value="">All Types</MenuItem>
-                  <MenuItem value="Unsafe_Act">Unsafe Act</MenuItem>
-                  <MenuItem value="Unsafe_Condition">Unsafe Condition</MenuItem>
-                  <MenuItem value="Work_Stoppage">Work Stoppage</MenuItem>
-                  <MenuItem value="Near_Miss">Near Miss</MenuItem>
-                  <MenuItem value="Good_Practice">Good Practice</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6}}>
-              <TextField
-                fullWidth
-                label="Plant ID"
-                value={filters.plantId}
-                onChange={(e) => handleFilterChange('plantId', e.target.value)}
-                type="number"
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={clearFilters}>Clear All</Button>
-          <Button onClick={() => setFilterDialogOpen(false)}>Cancel</Button>
-          <Button onClick={() => setFilterDialogOpen(false)} variant="contained">Apply Filters</Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

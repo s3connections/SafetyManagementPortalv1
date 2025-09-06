@@ -1,5 +1,4 @@
 export * from '../types';
-export type { ObservationFormProps } from '../types';
 
 export interface ApiResponse<T = any> {
   success: boolean;
