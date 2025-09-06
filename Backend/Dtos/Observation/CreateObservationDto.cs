@@ -16,9 +16,9 @@ namespace Backend.Dtos.Observation
         [Required]
         public ObservationType ObservationType { get; set; }
 
-        // ✅ FIXED: Use PriorityLevel enum instead of Priority entity
+        // ✅ FIXED: Use Priority entity reference instead of PriorityLevel enum
         [Required]
-        public PriorityLevel Priority { get; set; }
+        public int PriorityId { get; set; }
 
         [MaxLength(100)]
         public string? Location { get; set; }

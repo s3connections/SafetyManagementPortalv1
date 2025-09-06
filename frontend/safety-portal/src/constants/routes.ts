@@ -1,33 +1,46 @@
 export const ROUTES = {
-  HOME: '/',
   DASHBOARD: '/dashboard',
   OBSERVATIONS: '/observations',
-  OBSERVATION_DETAILS: '/observations/:id',
-  CREATE_OBSERVATION: '/observations/create',
-  EDIT_OBSERVATION: '/observations/:id/edit',
+  OBSERVATIONS_CREATE: '/observations/create',
+  OBSERVATIONS_DETAIL: '/observations/:id',
   AUDITS: '/audits',
-  AUDIT_DETAILS: '/audits/:id',
-  CREATE_AUDIT: '/audits/create',
+  AUDITS_CREATE: '/audits/create',
   PERMITS: '/permits',
-  PERMIT_DETAILS: '/permits/:id',
-  CREATE_PERMIT: '/permits/create',
-  USERS: '/users',
-  USER_DETAILS: '/users/:id',
+  PERMITS_CREATE: '/permits/create',
+  REPORTS: '/reports',
+  ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_ROLES: '/admin/roles',
+  ADMIN_HIERARCHY: '/admin/hierarchy',
   PROFILE: '/profile',
   SETTINGS: '/settings',
   LOGIN: '/login',
-  LOGOUT: '/logout',
-  UNAUTHORIZED: '/unauthorized'
+  LOGOUT: '/logout'
 } as const;
 
+// Type for route keys
 export type RouteKey = keyof typeof ROUTES;
+
+// Type for route paths  
 export type RoutePath = typeof ROUTES[RouteKey];
 
+// ✅ FIXED: Added missing return statement and proper logic
 export const checkIsCurrentPath = (routePath: string, currentPath: string): boolean => {
   if (routePath === currentPath) {
     return true;
   }
+  
+  // Handle dynamic routes like /observations/:id
+  if (routePath.includes(':')) {
+    const routePattern = routePath.replace(/:[^/]+/g, '[^/]+');
+    const regex = new RegExp(`^${routePattern}$`);
+    return regex.test(currentPath);
+  }
+  
+  return false;
+};
 
+// ✅ FIXED: Proper function declaration
 export const getRoute = (key: RouteKey, params?: Record<string, string | number>): string => {
   let route = ROUTES[key];
   if (params) {
@@ -38,14 +51,18 @@ export const getRoute = (key: RouteKey, params?: Record<string, string | number>
   return route;
 };
 
-// ✅ FIXED: Get first element from split array
+// ✅ FIXED: Get first element from split array  
 export const isActiveRoute = (currentPath: string, routePath: string): boolean => {
   if (routePath === ROUTES.DASHBOARD) {
     return currentPath === routePath;
   }
-
   
-  const pathWithoutParams = routePath.split('/:')[0]; // ✅ FIXED: Get first element
-  return currentPath.startsWith(pathWithoutParams);
-}
-}
+  // For other routes, check if current path starts with the route
+  const currentSegments = currentPath.split('/').filter(Boolean);
+  const routeSegments = routePath.split('/').filter(Boolean);
+  
+  if (routeSegments.length === 0) return false;
+  
+  // Match the first segment
+  return currentSegments.length > 0 && currentSegments[0] === routeSegments[0];
+};

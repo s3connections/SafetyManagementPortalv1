@@ -1,67 +1,71 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
-    [Table("IncidentObservations")]
     public class IncidentObservation : BaseEntity
     {
         [Required]
-        [StringLength(200)]
-        public string Title { get; set; }
-        
+        [MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+
         [Required]
-        [StringLength(50)]
-        public string IncidentNumber { get; set; }
-        
+        [MaxLength(2000)]
+        public string Description { get; set; } = string.Empty;
+
         [Required]
-        public string Description { get; set; } 
-        
+        public ObservationType ObservationType { get; set; }
+
         [Required]
-        public int IncidentTypeId { get; set; }
+        public ObservationStatus Status { get; set; } = ObservationStatus.Open;
+
+        [MaxLength(100)]
+        public string? Location { get; set; }
+
+        [MaxLength(50)]
+        public string TicketNumber { get; set; } = string.Empty;
+
+        public DateTime? DueDate { get; set; }
+        public DateTime? CompletedDate { get; set; }
+
+        [MaxLength(1000)]
+        public string? ResolutionNotes { get; set; }
+
+        [MaxLength(500)]
+        public string? ImagePath { get; set; }
+
+        // Foreign Keys
+        public int ReportedByUserId { get; set; }
+        public int? AssignedToUserId { get; set; }
+        public int? InvestigatedByUserId { get; set; }
+        public DateTime? InvestigationCompletedDate { get; set; }
+        public string? RootCauseAnalysis { get; set; }
         
-        [ForeignKey("IncidentTypeId")]
-        public virtual IncidentType? IncidentType { get; set; }
-        
-        [Required]
+        public int? PlantId { get; set; }
+        public int? DepartmentId { get; set; }
         public int PriorityId { get; set; }
-        
-        [ForeignKey("PriorityId")]
-        public virtual Priority? Priority { get; set; }
-        
-        [Required]
-        public int PlantId { get; set; }
-        
-        [ForeignKey("PlantId")]
-        public virtual Plant? Plant { get; set; }
-        
-        [Required]
-        public int LocationId { get; set; }
-        
-        [ForeignKey("LocationId")]
-        public virtual Location? Location { get; set; }
-        
-        [Required]
-        public DateTime DateTimeObserved { get; set; }
-        
-        public int? ReportedById { get; set; }
-        
-        [ForeignKey("ReportedById")]
-        public virtual Employee? ReportedBy { get; set; }
-        
-        public string? ImmediateActions { get; set; }
-        
-        [Required]
-        public int StatusId { get; set; }
-        
-        [ForeignKey("StatusId")]
-        public virtual IncidentStatus? Status { get; set; }
-        
+
         // Navigation Properties
-        public virtual ICollection<InvestigationWitness> Witnesses { get; set; } = new List<InvestigationWitness>();
-        public virtual ICollection<IncidentInvestigation> Investigations { get; set; } = new List<IncidentInvestigation>();
-        public virtual ICollection<IncidentObservationAttachment> Attachments { get; set; } = new List<IncidentObservationAttachment>();
+        [ForeignKey(nameof(ReportedByUserId))]
+        public virtual User ReportedByUser { get; set; } = null!;
+
+        [ForeignKey(nameof(AssignedToUserId))]
+        public virtual User? AssignedToUser { get; set; }
+
+        [ForeignKey(nameof(InvestigatedByUserId))]
+        public virtual User? InvestigatedByUser { get; set; }
+
+        [ForeignKey(nameof(PlantId))]
+        public virtual Plant? Plant { get; set; }
+
+        [ForeignKey(nameof(DepartmentId))]
+        public virtual Department? Department { get; set; }
+        
+        [ForeignKey(nameof(PriorityId))]
+        public virtual Priority Priority { get; set; } = null!;
+        
+        // ✅ ADDED: Reporter alias for consistency
+        [NotMapped]
+        public virtual User Reporter => ReportedByUser;
     }
 }

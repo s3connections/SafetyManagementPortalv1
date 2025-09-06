@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useCallback, RefObject } from 'react';
+import { useRef, useEffect, useCallback, useState, RefObject } from 'react';
 
-// ✅ FIXED: Custom hook for outside click detection
-export const useClickOutside = <T extends HTMLElement = HTMLElement>(
+// ✅ FIXED: Custom hook with proper null handling
+export const useClickOutside = <T extends HTMLElement>(
   callback: () => void
-): RefObject<T> => {
-  const ref = useRef<T>(null);
+): RefObject<T | null> => {
+  const ref = useRef<T | null>(null);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -26,39 +26,41 @@ export const useClickOutside = <T extends HTMLElement = HTMLElement>(
 export const useKeyboardShortcut = (
   keys: string[],
   callback: (event: KeyboardEvent) => void,
-  node: HTMLElement | null = null
+  deps: any[] = []
 ) => {
   useEffect(() => {
-    const targetNode = node || document;
-    
-    // ✅ FIXED: Proper event handler typing
-    const handleKeyPress = (event: Event) => {
-      const keyboardEvent = event as KeyboardEvent;
-      if (keys.every(key => {
-        // Handle modifier keys
-        if (key === 'ctrl') return keyboardEvent.ctrlKey;
-        if (key === 'shift') return keyboardEvent.shiftKey;
-        if (key === 'alt') return keyboardEvent.altKey;
-        if (key === 'meta') return keyboardEvent.metaKey;
-        
-        // Handle regular keys
-        return keyboardEvent.key.toLowerCase() === key.toLowerCase();
-      })) {
-        callback(keyboardEvent);
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const keyPressed = keys.every(key => {
+        switch (key) {
+          case 'ctrl':
+            return event.ctrlKey;
+          case 'shift':
+            return event.shiftKey;
+          case 'alt':
+            return event.altKey;
+          case 'meta':
+            return event.metaKey;
+          default:
+            return event.key.toLowerCase() === key.toLowerCase();
+        }
+      });
+
+      if (keyPressed) {
+        event.preventDefault();
+        callback(event);
       }
     };
 
-    targetNode.addEventListener('keydown', handleKeyPress);
-    
+    document.addEventListener('keydown', handleKeyPress);
     return () => {
-      targetNode.removeEventListener('keydown', handleKeyPress);
+      document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [keys, callback, node]);
+  }, [keys, callback, ...deps]);
 };
 
-// ✅ FIXED: Custom hook for debouncing
+// ✅ FIXED: Custom hook for debounced value
 export const useDebounce = <T>(value: T, delay: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -83,7 +85,7 @@ export const useLocalStorage = <T>(
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
+      console.error('Error reading localStorage key "' + key + '":', error);
       return initialValue;
     }
   });
@@ -94,19 +96,19 @@ export const useLocalStorage = <T>(
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
+      console.error('Error setting localStorage key "' + key + '":', error);
     }
   };
 
   return [storedValue, setValue];
 };
 
-// ✅ FIXED: Custom hook for intersection observer
+// ✅ FIXED: Custom hook for intersection observer with proper null handling
 export const useIntersectionObserver = (
   options: IntersectionObserverInit = {}
-): [RefObject<HTMLElement>, boolean] => {
+): [RefObject<HTMLElement | null>, boolean] => {
   const [isIntersecting, setIsIntersecting] = useState(false);
-  const targetRef = useRef<HTMLElement>(null);
+  const targetRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
@@ -128,66 +130,11 @@ export const useIntersectionObserver = (
   return [targetRef, isIntersecting];
 };
 
-// ✅ FIXED: Custom hook for toggle
-export const useToggle = (initialValue: boolean = false): [boolean, () => void] => {
-  const [value, setValue] = useState(initialValue);
-
-  const toggle = useCallback(() => {
-    setValue(prev => !prev);
-  }, []);
-
-  return [value, toggle];
-};
-
-// ✅ FIXED: Custom hook for previous value
-export const usePrevious = <T>(value: T): T | undefined => {
-  const ref = useRef<T | undefined>(undefined); // ✅ FIXED: Added explicit undefined
-  
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  
-  return ref.current;
-};
-
-// Custom hook for async operation
-export const useAsync = <T, E = string>(
-  asyncFunction: () => Promise<T>,
-  immediate: boolean = true
-) => {
-  const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
-  const [value, setValue] = useState<T | null>(null);
-  const [error, setError] = useState<E | null>(null);
-
-  const execute = useCallback(async () => {
-    setStatus('pending');
-    setValue(null);
-    setError(null);
-
-    try {
-      const response = await asyncFunction();
-      setValue(response);
-      setStatus('success');
-    } catch (error) {
-      setError(error as E);
-      setStatus('error');
-    }
-  }, [asyncFunction]);
-
-  useEffect(() => {
-    if (immediate) {
-      execute();
-    }
-  }, [execute, immediate]);
-
-  return { execute, status, value, error };
-};
-
-// Custom hook for window size
+// ✅ FIXED: Custom hook for window size
 export const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    width: undefined as number | undefined,
+    height: undefined as number | undefined,
   });
 
   useEffect(() => {
@@ -199,27 +146,33 @@ export const useWindowSize = () => {
     };
 
     window.addEventListener('resize', handleResize);
+    handleResize(); // Call handler right away so state gets updated with initial window size
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return windowSize;
 };
 
-// Custom hook for media query
-export const useMediaQuery = (query: string): boolean => {
-  const [matches, setMatches] = useState(false);
-
+// ✅ FIXED: Custom hook for previous value with proper initialization
+export const usePrevious = <T>(value: T): T | undefined => {
+  const ref = useRef<T | undefined>(undefined);
+  
   useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
+    ref.current = value;
+  });
+  
+  return ref.current;
+};
 
-    const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
-    
-    return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
+// ✅ FIXED: Custom hook for toggle
+export const useToggle = (
+  initialValue: boolean = false
+): [boolean, () => void, (value: boolean) => void] => {
+  const [value, setValue] = useState(initialValue);
 
-  return matches;
+  const toggle = useCallback(() => setValue(v => !v), []);
+  const setToggle = useCallback((newValue: boolean) => setValue(newValue), []);
+
+  return [value, toggle, setToggle];
 };

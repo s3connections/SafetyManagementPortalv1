@@ -54,7 +54,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check role-based access
   if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to={ROUTES.UNAUTHORIZED} replace />;
+    return <Navigate to={ROUTES.LOGOUT} replace />;
   }
 
   return <>{children}</>;

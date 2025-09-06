@@ -1,278 +1,215 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   TextField,
   Button,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Alert,
-  CircularProgress,
   Grid,
-  Card,
-  CardContent,
-  Stack,
-  Divider,
-  FormHelperText
+  Alert
 } from '@mui/material';
-import {
-  PhotoCamera as PhotoCameraIcon,
-  Save as SaveIcon,
-  Clear as ClearIcon
-} from '@mui/icons-material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import ObservationService from '../services/ObservationService';
-import { CreateObservationDto, ObservationType, Priority, ObservationFormData } from '../types';
+import {
+  CreateObservationDto,
+  ObservationType,
+  Priority,
+  ObservationFormData
+} from '../types';
 
 interface ObservationFormProps {
   onSave?: (observation: any) => void;
   onCancel?: () => void;
-  initialData?: Partial<ObservationFormData>;
-  mode?: 'create' | 'edit';
+  open?: boolean;
 }
 
 const ObservationForm: React.FC<ObservationFormProps> = ({
   onSave,
   onCancel,
-  initialData,
-  mode = 'create'
+  open = false
 }) => {
-  // ✅ FIXED: Form state matches backend enums
+  // ✅ FIXED: Complete ObservationFormData with all required properties
   const [formData, setFormData] = useState<ObservationFormData>({
-    title: '',
-    description: '',
-    observationType: 'Safety', // ✅ FIXED: Use backend enum values
-    priorityId: 1, // ✅ FIXED: Reference Priority by ID
-    location: '',
-    reportedByUserId: 1, // Default user ID
-    assignedToUserId: undefined,
+    title: '', // ✅ FIXED: Added title property
+    description: '', // ✅ FIXED: Made required string
+    observationType: ObservationType.GOOD_PRACTICE, // ✅ Use enum value from types.ts
+    priority: Priority.MEDIUM, // ✅ FIXED: Use Priority enum
+    location: '', // ✅ FIXED: Made required string
+    reportedByUserId: 1, // ✅ FIXED: Added missing property
+    assignedToUserId: undefined, // ✅ FIXED: Added missing property
     plantId: undefined,
     departmentId: undefined,
-    dueDate: '',
-    ...initialData
+    dueDate: undefined
   });
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  // ✅ FIXED: Mock priorities that match Priority enum structure
+  const priorities = [
+    { value: Priority.LOW, label: 'Low', color: '#4caf50' },
+    { value: Priority.MEDIUM, label: 'Medium', color: '#ff9800' },
+    { value: Priority.HIGH, label: 'High', color: '#f44336' }
+  ];
+
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [priorities, setPriorities] = useState<Priority[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Load priorities from backend
-  useEffect(() => {
-    // You'll need to implement this service call
-    // setPriorities(await PriorityService.getAll());
-    // For now, mock data:
-    setPriorities([
-      { id: 1, name: 'Low', code: 'LOW', color: '#4caf50', sortOrder: 1, slaHours: 72, isActive: true },
-      { id: 2, name: 'Medium', code: 'MED', color: '#ff9800', sortOrder: 2, slaHours: 48, isActive: true },
-      { id: 3, name: 'High', code: 'HIGH', color: '#f44336', sortOrder: 3, slaHours: 24, isActive: true },
-      { id: 4, name: 'Critical', code: 'CRIT', color: '#9c27b0', sortOrder: 4, slaHours: 8, isActive: true }
-    ]);
-  }, []);
-
-  // ✅ FIXED: File handling corrected
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; // ✅ FIXED: Get first file from FileList
-    if (file) {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!allowedTypes.includes(file.type)) {
-        setError('Please select a valid image file (JPEG, JPG, PNG, or GIF)');
-        return;
-      }
-
-      if (file.size > maxSize) {
-        setError('File size must be less than 5MB');
-        return;
-      }
-
-      setImageFile(file);
-      setError(null);
-    }
-  };
-
-  // Handle text field changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
     
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Handle select changes
-  const handleSelectChange = (e: SelectChangeEvent<string | number>) => {
-    const { name, value } = e.target;
+  const handleSelectChange = (event: SelectChangeEvent) => {
+    const { name, value } = event.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
     
-    if (errors[name!]) {
-      setErrors(prev => ({
-        ...prev,
-        [name!]: ''
-      }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Form validation
-  const validateForm = (): boolean => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required';
     }
 
-    if (!formData.observationType) {
-      newErrors.observationType = 'Observation type is required';
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
     }
 
-    if (!formData.priorityId) {
-      newErrors.priorityId = 'Priority is required';
+    if (!formData.priority) {
+      newErrors.priority = 'Priority is required';
     }
 
     if (!formData.location.trim()) {
       newErrors.location = 'Location is required';
     }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ FIXED: Form submission with correct types
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
     if (!validateForm()) {
       return;
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
-      
-      // ✅ FIXED: Find the Priority entity by ID
-      const selectedPriority = priorities.find(p => p.id === formData.priorityId);
-      if (!selectedPriority) {
-        throw new Error('Selected priority not found');
-      }
-
       // ✅ FIXED: Create DTO with exact backend structure
       const createData: CreateObservationDto = {
         title: formData.title,
         description: formData.description,
         observationType: formData.observationType,
-        priority: selectedPriority, // ✅ FIXED: Send full Priority entity
-        location: formData.location || undefined,
-        dueDate: formData.dueDate || undefined,
+        priority: formData.priority, // ✅ Send Priority enum value
+        location: formData.location,
+        dueDate: formData.dueDate,
         reportedByUserId: formData.reportedByUserId,
         assignedToUserId: formData.assignedToUserId,
         plantId: formData.plantId,
         departmentId: formData.departmentId
       };
+
+      const result = await ObservationService.createObservation(createData);
       
-      // ✅ FIXED: Now types match exactly
-      const response = await ObservationService.createObservation(createData, imageFile || undefined);
-      
-      if (response.success && response.data) {
-        setSuccess(`Observation created successfully! Ticket: ${response.data.ticketNumber}`);
-        onSave?.(response.data);
-        
-        if (mode === 'create') {
-          handleReset();
-        }
-      } else {
-        throw new Error(response.error || 'Failed to create observation');
+      if (onSave) {
+        onSave(result);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create observation');
+
+      // Reset form
+      resetForm();
+      
+    } catch (error) {
+      console.error('Error creating observation:', error);
+      setErrors({ submit: 'Failed to create observation. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
-  // Reset form
-  const handleReset = () => {
+  const resetForm = () => {
     setFormData({
       title: '',
       description: '',
-      observationType: 'Safety',
-      priorityId: 1,
+      observationType: ObservationType.GOOD_PRACTICE,
+      priority: Priority.MEDIUM,
       location: '',
       reportedByUserId: 1,
       assignedToUserId: undefined,
       plantId: undefined,
       departmentId: undefined,
-      dueDate: ''
+      dueDate: undefined
     });
-    setImageFile(null);
-    setError(null);
-    setSuccess(null);
     setErrors({});
   };
 
-  const handleRemoveImage = () => {
-    setImageFile(null);
+  const handleCancel = () => {
+    resetForm();
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} noValidate>
-      <Card>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            {mode === 'create' ? 'Report Safety Observation' : 'Edit Safety Observation'}
-          </Typography>
+    <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
+      <DialogTitle>Create New Observation</DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent>
+          {errors.submit && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.submit}
+            </Alert>
+          )}
           
-          <Divider sx={{ mb: 3 }} />
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-              {error}
-            </Alert>
-          )}
-
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
-              {success}
-            </Alert>
-          )}
-
-          <Grid container spacing={3}>
-            {/* Title */}
-            <Grid item xs={12}>
+          <Grid container spacing={2}>
+            {/* ✅ FIXED: Added Title field */}
+            <Grid size ={{xs:12}}>
               <TextField
                 fullWidth
+                required
                 name="title"
                 label="Title *"
                 value={formData.title}
                 onChange={handleInputChange}
                 error={!!errors.title}
                 helperText={errors.title}
-                placeholder="Enter observation title"
               />
             </Grid>
 
-            {/* Observation Type */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.observationType}>
+            <Grid size ={{xs:12}}>
+              <TextField
+                fullWidth
+                required
+                multiline
+                rows={3}
+                name="description"
+                label="Description *"
+                value={formData.description}
+                onChange={handleInputChange}
+                error={!!errors.description}
+                helperText={errors.description}
+              />
+            </Grid>
+
+            <Grid size ={{xs: 12, sm: 6}}>
+              <FormControl fullWidth required>
                 <InputLabel id="observation-type-label">Observation Type *</InputLabel>
                 <Select
                   labelId="observation-type-label"
@@ -281,160 +218,77 @@ const ObservationForm: React.FC<ObservationFormProps> = ({
                   label="Observation Type *"
                   onChange={handleSelectChange}
                 >
-                  <MenuItem value="Safety">Safety</MenuItem>
-                  <MenuItem value="Environmental">Environmental</MenuItem>
-                  <MenuItem value="Quality">Quality</MenuItem>
-                  <MenuItem value="Security">Security</MenuItem>
-                  <MenuItem value="Other">Other</MenuItem>
+                  <MenuItem value={ObservationType.UNSAFE_ACT}>Unsafe Act</MenuItem>
+                  <MenuItem value={ObservationType.UNSAFE_CONDITION}>Unsafe Condition</MenuItem>
+                  <MenuItem value={ObservationType.NEAR_MISS}>Near Miss</MenuItem>
+                  <MenuItem value={ObservationType.GOOD_PRACTICE}>Good Practice</MenuItem>
+                  <MenuItem value={ObservationType.WORK_STOPPAGE}>Work Stoppage</MenuItem>
                 </Select>
-                {errors.observationType && (
-                  <FormHelperText>{errors.observationType}</FormHelperText>
-                )}
               </FormControl>
             </Grid>
 
-            {/* Priority */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.priorityId}>
+            <Grid size ={{xs: 12, sm: 6}}>
+              <FormControl fullWidth required>
                 <InputLabel id="priority-label">Priority *</InputLabel>
                 <Select
                   labelId="priority-label"
-                  name="priorityId"
-                  value={formData.priorityId}
+                  name="priority"
+                  value={formData.priority}
                   label="Priority *"
                   onChange={handleSelectChange}
                 >
                   {priorities.map((priority) => (
-                    <MenuItem key={priority.id} value={priority.id}>
-                      {priority.name}
+                    <MenuItem key={priority.value} value={priority.value}>
+                      {priority.label}
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.priorityId && (
-                  <FormHelperText>{errors.priorityId}</FormHelperText>
-                )}
               </FormControl>
             </Grid>
 
-            {/* Location */}
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, sm: 6}}>
               <TextField
                 fullWidth
+                required
                 name="location"
                 label="Location *"
                 value={formData.location}
                 onChange={handleInputChange}
                 error={!!errors.location}
                 helperText={errors.location}
-                placeholder="Enter location where observation was made"
               />
             </Grid>
 
-            {/* Due Date */}
-            <Grid item xs={12} md={6}>
+            <Grid size ={{xs: 12, sm: 6}}>
               <TextField
                 fullWidth
                 name="dueDate"
                 label="Due Date"
                 type="datetime-local"
-                value={formData.dueDate}
+                value={formData.dueDate || ''}
                 onChange={handleInputChange}
                 InputLabelProps={{
                   shrink: true,
                 }}
               />
             </Grid>
-
-            {/* Description */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                name="description"
-                label="Description *"
-                value={formData.description}
-                onChange={handleInputChange}
-                error={!!errors.description}
-                helperText={errors.description}
-                placeholder="Provide detailed description of the observation"
-              />
-            </Grid>
-
-            {/* File Upload */}
-            <Grid item xs={12}>
-              <Box>
-                <Typography variant="subtitle1" gutterBottom>
-                  Attach Image (Optional)
-                </Typography>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<PhotoCameraIcon />}
-                    disabled={loading}
-                  >
-                    Upload Image
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-                  </Button>
-                  
-                  {imageFile && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {imageFile.name}
-                      </Typography>
-                      <Button
-                        size="small"
-                        color="error"
-                        onClick={handleRemoveImage}
-                        startIcon={<ClearIcon />}
-                      >
-                        Remove
-                      </Button>
-                    </Box>
-                  )}
-                </Stack>
-              </Box>
-            </Grid>
           </Grid>
+        </DialogContent>
 
-          {/* Action Buttons */}
-          <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-            {onCancel && (
-              <Button
-                variant="outlined"
-                onClick={onCancel}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-            )}
-            
-            <Button
-              variant="outlined"
-              onClick={handleReset}
-              disabled={loading}
-            >
-              Reset
-            </Button>
-            
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : (mode === 'create' ? 'Create Observation' : 'Update Observation')}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-    </Box>
+        <DialogActions>
+          <Button onClick={handleCancel} disabled={loading}>
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            disabled={loading}
+          >
+            {loading ? 'Creating...' : 'Create Observation'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 };
 

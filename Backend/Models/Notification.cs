@@ -34,6 +34,7 @@ namespace Backend.Models
         public string Status { get; set; } = "Pending";
         
         public int? EntityId { get; set; }
+        public bool IsDeleted { get; set; }
         
         [StringLength(50)]
         public string? EntityType { get; set; }

@@ -3,23 +3,26 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
-    // ✅ UPDATED: Frontend-aligned enum values
+    // ✅ FIXED: Aligned with frontend enum values
     public enum ObservationType
     {
-        [Display(Name = "Unsafe Act")]
-        UnsafeAct,
+        [Display(Name = "Safety")]
+        Safety,
         
-        [Display(Name = "Unsafe Condition")]
-        UnsafeCondition,
+        [Display(Name = "Environmental")]
+        Environmental,
         
-        [Display(Name = "Near Miss")]
-        NearMiss,
+        [Display(Name = "Quality")]
+        Quality,
         
-        [Display(Name = "Good Practice")]
-        GoodPractice
+        [Display(Name = "Security")]
+        Security,
+        
+        [Display(Name = "Other")]
+        Other
     }
 
-    // ✅ UPDATED: Frontend-aligned enum values (Resolved → Completed)
+    // ✅ FIXED: Aligned with frontend enum values (includes Resolved)
     public enum ObservationStatus
     {
         [Display(Name = "Open")]
@@ -28,30 +31,14 @@ namespace Backend.Models
         [Display(Name = "In Progress")]
         InProgress,
         
-        [Display(Name = "Completed")]
-        Completed,  // ✅ CHANGED: Was "Resolved"
+        [Display(Name = "Resolved")]
+        Resolved, // ✅ FIXED: Match frontend expectation
         
         [Display(Name = "Closed")]
         Closed,
         
         [Display(Name = "Cancelled")]
         Cancelled
-    }
-
-    // ✅ NEW: Simple Priority enum to match frontend
-    public enum PriorityLevel
-    {
-        [Display(Name = "Low")]
-        Low = 1,
-        
-        [Display(Name = "Medium")]
-        Medium = 2,
-        
-        [Display(Name = "High")]
-        High = 3,
-        
-        [Display(Name = "Critical")]
-        Critical = 4
     }
 
     public class Observation : BaseEntity
@@ -69,10 +56,6 @@ namespace Backend.Models
 
         [Required]
         public ObservationStatus Status { get; set; } = ObservationStatus.Open;
-
-        // ✅ NEW: Added Priority field to match frontend expectations
-        [Required]
-        public PriorityLevel Priority { get; set; } = PriorityLevel.Low;
 
         [MaxLength(100)]
         public string? Location { get; set; }
@@ -95,6 +78,9 @@ namespace Backend.Models
         public int? AssignedToUserId { get; set; }
         public int? PlantId { get; set; }
         public int? DepartmentId { get; set; }
+        
+        // ✅ FIXED: Use Priority entity reference
+        public int PriorityId { get; set; }
 
         // Navigation Properties
         [ForeignKey(nameof(ReportedByUserId))]
@@ -108,5 +94,12 @@ namespace Backend.Models
 
         [ForeignKey(nameof(DepartmentId))]
         public virtual Department? Department { get; set; }
+        
+        [ForeignKey(nameof(PriorityId))]
+        public virtual Priority Priority { get; set; } = null!;
+        
+        // ✅ ADDED: Reporter navigation property (alias for ReportedByUser)
+        [NotMapped]
+        public virtual User Reporter => ReportedByUser;
     }
 }

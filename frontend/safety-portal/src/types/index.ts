@@ -1,4 +1,7 @@
-export interface ApiResponse<T> {
+export * from '../types';
+export type { ObservationFormProps } from '../types';
+
+export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
   data?: T;
@@ -6,7 +9,7 @@ export interface ApiResponse<T> {
   timestamp?: string;
 }
 
-export interface PaginatedResponse<T> {
+export interface PaginatedResponse<T = any> {
   success: boolean;
   message: string;
   data: T[];
@@ -20,12 +23,16 @@ export interface PaginatedResponse<T> {
   };
 }
 
-// User Types
+// ===================================
+// USER TYPES
+// ===================================
 export interface User {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: UserRole;
+  phoneNumber?: string;
   departmentId?: number;
   plantId?: number;
   isActive: boolean;
@@ -35,36 +42,48 @@ export interface User {
 
 export type UserRole = 'admin' | 'manager' | 'supervisor' | 'employee' | 'auditor' | 'safety_officer';
 
-// ✅ FIXED: Match backend exactly
-export interface Observation {
-  id: number;
-  ticketNumber: string;
-  title: string;
-  description: string;
-  observationType: ObservationType;
-  status: ObservationStatus;
-  priority: Priority; // ✅ This will be the Priority entity from backend
-  reportedBy: number;
-  assignedTo?: number;
-  plantId: number;
-  departmentId: number;
-  location: string;
-  hazardCategoryId?: number;
-  hazardTypeId?: number;
-  imageUrl?: string;
-  dueDate?: string;
-  completedAt?: string;
-  createdAt: string;
-  updatedAt: string;
+export interface CreateUserDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: UserRole;
+  phoneNumber?: string;
+  departmentId?: number;
+  plantId?: number;
 }
 
-// ✅ FIXED: Match your backend enum exactly
-export type ObservationType = 'Safety' | 'Environmental' | 'Quality' | 'Security' | 'Other';
+export interface UpdateUserDto {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  role?: UserRole;
+  phoneNumber?: string;
+  departmentId?: number;
+  plantId?: number;
+}
 
-// ✅ FIXED: Match your backend enum exactly (keep Resolved, not Completed)
-export type ObservationStatus = 'Open' | 'InProgress' | 'Resolved' | 'Closed' | 'Cancelled';
+// ===================================
+// OBSERVATION TYPES
+// ===================================
+// ✅ FIXED: Match backend enum exactly
+export enum ObservationType {
+  Safety = 'Safety',
+  Environmental = 'Environmental',
+  Quality = 'Quality',
+  Security = 'Security',
+  Other = 'Other'
+}
 
-// ✅ FIXED: Priority is entity, not enum - use this for display only
+// ✅ FIXED: Match backend enum exactly (includes Resolved)
+export enum ObservationStatus {
+  Open = 'Open',
+  InProgress = 'InProgress',
+  Resolved = 'Resolved',
+  Closed = 'Closed',
+  Cancelled = 'Cancelled'
+}
+
+// ✅ FIXED: Priority as entity (not enum) - matches backend Priority model
 export interface Priority {
   id: number;
   name: string;
@@ -76,12 +95,52 @@ export interface Priority {
   isActive: boolean;
 }
 
-// ✅ FIXED: CreateObservationDto to match backend exactly
+// ✅ FIXED: Main Observation interface
+export interface Observation {
+  id: number;
+  title: string;
+  description: string;
+  observationType: ObservationType;
+  priority: Priority; // ✅ Full Priority entity
+  status: ObservationStatus;
+  location?: string;
+  ticketNumber: string;
+  dueDate?: string;
+  completedDate?: string;
+  resolutionNotes?: string;
+  imagePath?: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // User information
+  reportedByUserId: number;
+  reportedByUserName: string;
+  reportedByUserEmail: string;
+  
+  assignedToUserId?: number;
+  assignedToUserName?: string;
+  assignedToUserEmail?: string;
+  
+  // Plant and Department information
+  plantId?: number;
+  plantName?: string;
+  
+  departmentId?: number;
+  departmentName?: string;
+
+  // Navigation properties (for components)
+  reporter?: User;
+  assignedToUser?: User;
+  plant?: Plant;
+  department?: Department;
+}
+
+// ✅ FIXED: CreateObservationDto - EXPORTED and aligned with backend
 export interface CreateObservationDto {
   title: string;
   description: string;
   observationType: ObservationType;
-  priority: Priority; // ✅ Backend expects Priority entity
+  priorityId: number; // ✅ Backend expects Priority ID, not entity
   location?: string;
   dueDate?: string;
   reportedByUserId: number;
@@ -94,7 +153,7 @@ export interface UpdateObservationDto {
   title?: string;
   description?: string;
   observationType?: ObservationType;
-  priority?: Priority; // ✅ Backend expects Priority entity
+  priorityId?: number; // ✅ Backend expects Priority ID
   status?: ObservationStatus;
   location?: string;
   dueDate?: string;
@@ -104,7 +163,58 @@ export interface UpdateObservationDto {
   departmentId?: number;
 }
 
-// Audit Types
+// ✅ FIXED: ObservationFormData with all required properties
+export interface ObservationFormData {
+  title: string;
+  description: string;
+  observationType: ObservationType;
+  priorityId: number; // ✅ Form uses Priority ID
+  location?: string;
+  dueDate?: string;
+  reportedByUserId: number;
+  assignedToUserId?: number;
+  plantId?: number;
+  departmentId?: number;
+}
+
+// ✅ ADDED: ObservationData interface for dashboard components
+export interface ObservationData {
+  id: number;
+  ticketNumber: string;
+  title: string;
+  description?: string;
+  observationType: ObservationType;
+  status: ObservationStatus;
+  priority: Priority;
+  createdAt: string;
+  reporter?: User;
+}
+
+// ===================================
+// PLANT & DEPARTMENT TYPES
+// ===================================
+export interface Plant {
+  id: number;
+  name: string;
+  code?: string;
+  description?: string;
+  location?: string;
+  isActive: boolean;
+}
+
+export interface Department {
+  id: number;
+  name: string;
+  code?: string;
+  description?: string;
+  plantId?: number;
+  isActive: boolean;
+  plant?: Plant;
+}
+
+// ===================================
+// AUDIT TYPES
+// ===================================
 export interface Audit {
   id: number;
   auditNumber: string;
@@ -126,7 +236,9 @@ export interface Audit {
 export type AuditType = 'internal' | 'external' | 'regulatory' | 'management_review';
 export type AuditStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
-// Permit Types
+// ===================================
+// PERMIT TYPES
+// ===================================
 export interface Permit {
   id: number;
   permitNumber: string;
@@ -149,21 +261,9 @@ export interface Permit {
 export type PermitType = 'hot_work' | 'confined_space' | 'height_work' | 'electrical' | 'excavation' | 'chemical';
 export type PermitStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'expired' | 'cancelled';
 
-// ✅ FIXED: Form Data Types to work with Priority entity
-export interface ObservationFormData {
-  title: string;
-  description: string;
-  observationType: ObservationType;
-  priorityId: number; // ✅ Reference Priority by ID
-  location: string;
-  dueDate?: string;
-  reportedByUserId: number;
-  assignedToUserId?: number;
-  plantId?: number;
-  departmentId?: number;
-}
-
-// Common Filter Types
+// ===================================
+// COMMON TYPES
+// ===================================
 export interface SearchFilter {
   page?: number;
   limit?: number;
@@ -176,3 +276,44 @@ export interface SearchFilter {
   dateFrom?: string;
   dateTo?: string;
 }
+
+// ===================================
+// ROUTE CONSTANTS (Added missing routes)
+// ===================================
+export const USER_ROLES = {
+  ADMIN: 'admin' as const,
+  MANAGER: 'manager' as const,
+  SUPERVISOR: 'supervisor' as const,
+  EMPLOYEE: 'employee' as const,
+  AUDITOR: 'auditor' as const,
+  SAFETY_MANAGER: 'safety_officer' as const
+};
+
+export const ROUTES = {
+  DASHBOARD: '/dashboard',
+  OBSERVATIONS: '/observations',
+  OBSERVATIONS_CREATE: '/observations/create',
+  OBSERVATIONS_DETAIL: '/observations/:id',
+  AUDITS: '/audits',
+  AUDITS_CREATE: '/audits/create',
+  PERMITS: '/permits',
+  PERMITS_CREATE: '/permits/create',
+  REPORTS: '/reports',
+  ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_ROLES: '/admin/roles',
+  ADMIN_HIERARCHY: '/admin/hierarchy',
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
+  LOGIN: '/login',
+  LOGOUT: '/logout',
+  // ✅ ADDED: Missing routes
+  USERS: '/admin/users',
+  CREATE_OBSERVATION: '/observations/create',
+  CREATE_AUDIT: '/audits/create',
+  CREATE_PERMIT: '/permits/create',
+  UNAUTHORIZED: '/unauthorized'
+} as const;
+
+export type RouteKey = keyof typeof ROUTES;
+export type RoutePath = typeof ROUTES[RouteKey];

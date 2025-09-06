@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Observation, CreateObservationDto, UpdateObservationDto, ObservationStatus } from '../../types/Observation';
+import { Observation, CreateObservationDto, UpdateObservationDto, ObservationStatus } from '../../types/index';
 import { ObservationService } from '../../services/ObservationService';
 
 interface ObservationState {
@@ -56,7 +56,7 @@ export const createObservation = createAsyncThunk(
       title: observationData.title,
       description: observationData.description,
       observationType: observationData.observationType,
-      priority: observationData.priority,
+      priority: observationData.priorityId,
       location: observationData.location || '', // ✅ FIXED: Ensure location is never undefined
       dueDate: observationData.dueDate || '',
       assignedToUserId: observationData.assignedToUserId,

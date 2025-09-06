@@ -13,8 +13,8 @@ namespace Backend.Dtos.Observation
 
         public ObservationType? ObservationType { get; set; }
 
-        // ✅ FIXED: Use PriorityLevel enum instead of Priority entity
-        public PriorityLevel? Priority { get; set; }
+        // ✅ FIXED: Use Priority entity reference instead of PriorityLevel enum
+        public int? PriorityId { get; set; }
 
         public ObservationStatus? Status { get; set; }
 
@@ -27,7 +27,9 @@ namespace Backend.Dtos.Observation
         public string? ResolutionNotes { get; set; }
 
         public int? AssignedToUserId { get; set; }
+
         public int? PlantId { get; set; }
+
         public int? DepartmentId { get; set; }
     }
 }

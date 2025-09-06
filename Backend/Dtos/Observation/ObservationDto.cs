@@ -9,8 +9,8 @@ namespace Backend.Dtos.Observation
         public string Description { get; set; } = string.Empty;
         public ObservationType ObservationType { get; set; }
         
-        // ✅ FIXED: Use PriorityLevel enum instead of Priority entity
-        public PriorityLevel Priority { get; set; }
+        // ✅ FIXED: Use Priority entity instead of PriorityLevel enum
+        public Priority Priority { get; set; } = null!;
         
         public ObservationStatus Status { get; set; }
         public string? Location { get; set; }

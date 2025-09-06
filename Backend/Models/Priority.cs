@@ -28,10 +28,10 @@ namespace Backend.Models
         [Required]
         public int SlaHours { get; set; }
         
-        [Required]
-        public bool IsActive { get; set; } = true;
-        
         // Navigation Properties
         public virtual ICollection<IncidentObservation> IncidentObservations { get; set; } = new List<IncidentObservation>();
+        
+        // ✅ ADDED: Navigation to new Observation model
+        public virtual ICollection<Observation> Observations { get; set; } = new List<Observation>();
     }
 }

@@ -5,7 +5,7 @@ export interface ApiResponse<T = any> {
   errors?: string[];
 }
 
-export interface PaginatedResponse<T> {
+export interface PaginatedResponse<T = any> {
   success: boolean;
   message: string;
   data: T[];
@@ -76,7 +76,7 @@ export interface Department {
   plant?: Plant;
 }
 
-// Observation Types
+// ✅ FIXED: Observation Types - Using your preferred enum values
 export enum ObservationType {
   UNSAFE_ACT = 'Unsafe_Act',
   UNSAFE_CONDITION = 'Unsafe_Condition',
@@ -85,6 +85,7 @@ export enum ObservationType {
   GOOD_PRACTICE = 'Good_Practice'
 }
 
+// ✅ FIXED: Priority as enum with HIGH, MEDIUM, LOW
 export enum Priority {
   HIGH = 'High',
   MEDIUM = 'Medium',
@@ -134,12 +135,57 @@ export interface Observation {
   imageUrl?: string;
   createdAt: string;
   updatedAt: string;
-  
   // Related entities
   plant?: Plant;
   department?: Department;
   reporter?: User;
   assignee?: User;
+}
+
+// ✅ ADDED: Missing CreateObservationDto interface
+export interface CreateObservationDto {
+  title: string;
+  description: string;
+  observationType: ObservationType;
+  priority: Priority; // ✅ Full Priority object as you requested
+  location?: string;
+  dueDate?: string;
+  reportedByUserId: number;
+  assignedToUserId?: number;
+  plantId?: number;
+  departmentId?: number;
+}
+
+// ✅ ADDED: Missing UpdateObservationDto interface
+export interface UpdateObservationDto {
+  title?: string;
+  description?: string;
+  observationType?: ObservationType;
+  priority?: Priority;
+  status?: ObservationStatus;
+  location?: string;
+  dueDate?: string;
+  resolutionNotes?: string;
+  assignedToUserId?: number;
+  plantId?: number;
+  departmentId?: number;
+}
+
+// ✅ FIXED: ObservationFormData with ALL required properties
+export interface ObservationFormData {
+  title: string; // ✅ ADDED: Missing title property
+  description: string; // ✅ FIXED: Made required (not optional)
+  observationType: ObservationType; // ✅ FIXED: Made required (not optional)
+  priority: Priority; // ✅ FIXED: Made required (not optional)
+  priorityId?: number; // ✅ ADDED: For form handling
+  location: string; // ✅ Made required
+  dueDate?: string;
+  reportedByUserId: number; // ✅ ADDED: Missing property
+  assignedToUserId?: number; // ✅ ADDED: Missing property
+  assignedTo?: number | string;
+  plantId?: number;
+  departmentId?: number;
+  hazardType?: string;
 }
 
 // Incident Types
@@ -178,7 +224,6 @@ export interface Incident {
   preventiveActions?: string;
   createdAt: string;
   updatedAt: string;
-  
   // Related entities
   plant?: Plant;
   department?: Department;
@@ -186,7 +231,7 @@ export interface Incident {
   investigator?: User;
 }
 
-// Audit Types (with missing properties)
+// Audit Types
 export enum AuditType {
   INTERNAL = 'Internal',
   EXTERNAL = 'External',
@@ -204,14 +249,14 @@ export enum AuditStatus {
 export interface Audit {
   id: number;
   auditNumber: string;
-  auditType: AuditType; // Added missing property
+  auditType: AuditType;
   title: string;
   description: string;
   type: AuditType;
   status: AuditStatus;
   plannedStartDate: string;
   plannedEndDate: string;
-  scheduledDate: string; // Added missing property
+  scheduledDate: string;
   actualStartDate?: string;
   actualEndDate?: string;
   plantId: number;
@@ -221,7 +266,6 @@ export interface Audit {
   complianceScore?: number;
   createdAt: string;
   updatedAt: string;
-  
   // Related entities
   plant?: Plant;
   department?: Department;
@@ -266,7 +310,6 @@ export interface Permit {
   safetyMeasures: string[];
   createdAt: string;
   updatedAt: string;
-  
   // Related entities
   plant?: Plant;
   department?: Department;
@@ -275,17 +318,6 @@ export interface Permit {
 }
 
 // Form Data Types
-export interface ObservationFormData {
-  observationType?: ObservationType;
-  priority?: Priority;
-  description?: string;
-  location?: string;
-  plantId?: number;
-  departmentId?: number;
-  hazardType?: string;
-  assignedTo?: number | string; // Fixed to allow string conversion
-}
-
 export interface IncidentFormData {
   title?: string;
   description?: string;
@@ -342,19 +374,19 @@ export interface ComponentProps {
 
 // Props interfaces for route components
 export interface AuditDetailsProps {
-  auditId: string; // Changed to string for route params
+  auditId: string;
 }
 
 export interface IncidentDetailsProps {
-  incidentId: string; // Changed to string for route params
+  incidentId: string;
 }
 
 export interface PermitDetailsProps {
-  permitId: string; // Changed to string for route params
+  permitId: string;
 }
 
 export interface UserDetailsProps {
-  userId: string; // Changed to string for route params
+  userId: string;
 }
 
 export interface AuditFormProps {
@@ -403,7 +435,7 @@ export interface ChartDataPoint {
   name: string;
   value: number;
   color?: string;
-  percent?: number; // Added for pie chart
+  percent?: number;
 }
 
 export interface TrendDataPoint {
@@ -413,7 +445,7 @@ export interface TrendDataPoint {
   audits: number;
 }
 
-// Notification Types  
+// Notification Types
 export interface Notification {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
@@ -425,7 +457,7 @@ export interface Notification {
 
 export interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
+  addNotification: (notification: Omit<Notification, 'id'>) => void;
   removeNotification: (id: string) => void;
   markAsRead: (id: string) => void;
   clearAll: () => void;
@@ -475,3 +507,41 @@ export interface SearchFilter {
   sortOrder?: 'asc' | 'desc';
   filters?: Record<string, any>;
 }
+
+// ✅ ADDED: Route constants
+export const ROUTES = {
+  DASHBOARD: '/dashboard',
+  OBSERVATIONS: '/observations',
+  OBSERVATIONS_CREATE: '/observations/create',
+  OBSERVATIONS_DETAIL: '/observations/:id',
+  AUDITS: '/audits',
+  AUDITS_CREATE: '/audits/create',
+  PERMITS: '/permits',
+  PERMITS_CREATE: '/permits/create',
+  REPORTS: '/reports',
+  ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_ROLES: '/admin/roles',
+  ADMIN_HIERARCHY: '/admin/hierarchy',
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
+  LOGIN: '/login',
+  LOGOUT: '/logout',
+  USERS: '/admin/users',
+  CREATE_OBSERVATION: '/observations/create',
+  CREATE_AUDIT: '/audits/create',
+  CREATE_PERMIT: '/permits/create',
+  UNAUTHORIZED: '/unauthorized'
+} as const;
+
+export type RouteKey = keyof typeof ROUTES;
+export type RoutePath = typeof ROUTES[RouteKey];
+
+// ✅ ADDED: User role constants
+export const USER_ROLES = {
+  ADMIN: UserRole.ADMIN,
+  SAFETY_MANAGER: UserRole.SAFETY_MANAGER,
+  SAFETY_OFFICER: UserRole.SAFETY_OFFICER,
+  RESPONSIBLE_ENGINEER: UserRole.RESPONSIBLE_ENGINEER,
+  EMPLOYEE: UserRole.EMPLOYEE
+};

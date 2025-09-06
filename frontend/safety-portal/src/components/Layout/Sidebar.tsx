@@ -62,7 +62,7 @@ const Sidebar: React.FC = () => {
     },
     {
       name: 'Users',
-      path: ROUTES.USERS,
+      path: ROUTES.PROFILE,
       icon: 'users',
       roles: [USER_ROLES.ADMIN, USER_ROLES.SAFETY_MANAGER],
     },
@@ -72,18 +72,18 @@ const Sidebar: React.FC = () => {
     {
       name: 'New Observation',
       icon: 'plus',
-      action: () => window.location.href = ROUTES.CREATE_OBSERVATION,
+      action: () => window.location.href = ROUTES.OBSERVATIONS_CREATE,
     },
     {
       name: 'New Audit',
       icon: 'audit',
-      action: () => window.location.href = ROUTES.CREATE_AUDIT,
+      action: () => window.location.href = ROUTES.AUDITS_CREATE,
       adminOnly: true,
     },
     {
       name: 'New Permit',
       icon: 'permit',
-      action: () => window.location.href = ROUTES.CREATE_PERMIT,
+      action: () => window.location.href = ROUTES.PERMITS_CREATE,
     },
   ];
 
