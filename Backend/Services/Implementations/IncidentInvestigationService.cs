@@ -1,8 +1,8 @@
-using Backend.Data;
-using Backend.DTOs.Common;
-using Backend.DTOs.Incident;
-using Backend.Models;
-using Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

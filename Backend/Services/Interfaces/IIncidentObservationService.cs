@@ -1,6 +1,6 @@
-using Backend.Models;
-using Backend.DTOs.Incident;
-using Backend.Enums;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.enums;
 
 namespace SafetyManagementPortal.Backend.Services.Interfaces
 {

@@ -1,8 +1,8 @@
-using Backend.DTOs.Incident;
-using Backend.DTOs.Common;
-using Backend.Dtos.Permit;
-using Backend.Dtos.Audit;
-using Backend.DTOs.Employee;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Permit;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.DTOs.employee;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

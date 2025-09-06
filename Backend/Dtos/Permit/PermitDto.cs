@@ -1,4 +1,4 @@
-using Backend.Models;
+using SafetyManagementPortal.Backend.Models;
 
 namespace SafetyManagementPortal.Backend.DTOs.Permit
 {

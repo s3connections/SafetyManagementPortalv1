@@ -1,6 +1,6 @@
-using Backend.Models;
-using Backend.DTOs.Common;
-using Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Incident;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

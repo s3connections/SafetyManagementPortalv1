@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
-using Backend.Data;
-using Backend.Models;
-using Backend.Services.Interfaces;
-using Backend.DTOs.Incident;
-using Backend.Enums;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.enums;
 
 namespace SafetyManagementPortal.Backend.Services.Implementations
 {

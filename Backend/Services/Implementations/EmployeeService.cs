@@ -1,12 +1,13 @@
-using Backend.Data;
-using Backend.DTOs.Common;
-using Backend.DTOs.Employee;
-using Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs;
+using SafetyManagementPortal.Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SafetyManagementPortal.Backend.DTOs.employee;
 
 namespace SafetyManagementPortal.Backend.Services.Implementations
 {

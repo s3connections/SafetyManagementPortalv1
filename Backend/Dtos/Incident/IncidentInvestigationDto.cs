@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Backend.Enums;
-using Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.enums;
+using SafetyManagementPortal.Backend.Models;
 
 
 namespace SafetyManagementPortal.Backend.DTOs.Incident

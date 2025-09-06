@@ -1,5 +1,8 @@
-using Backend.DTOs.Common;
-using Backend.DTOs.Employee;
+using System.ComponentModel.DataAnnotations;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.enums;
+using SafetyManagementPortal.Backend.Models;
 using System;
 using System.Collections.Generic;
 
@@ -56,31 +59,6 @@ namespace SafetyManagementPortal.Backend.DTOs.Incident
         public string Color { get; set; } = string.Empty;
         public int SortOrder { get; set; }
         public int SlaHours { get; set; }
-        public bool IsActive { get; set; }
-    }
-
-    public class CategoryDto : BaseDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public int? ParentCategoryId { get; set; }
-        public CategoryDto? ParentCategory { get; set; }
-        public bool IsActive { get; set; }
-    }
-
-   
-  
-
-    public class LocationDto : BaseDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public int PlantId { get; set; }
-        public PlantDto? Plant { get; set; }
-        public int? ParentLocationId { get; set; }
-        public LocationDto? ParentLocation { get; set; }
         public bool IsActive { get; set; }
     }
 

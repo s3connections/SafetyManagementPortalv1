@@ -1,3 +1,5 @@
+using SafetyManagementPortal.Backend.Models;
+
 namespace SafetyManagementPortal.Backend.DTOs.Audit
 {
     public class AuditQuestionDto

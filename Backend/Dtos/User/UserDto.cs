@@ -1,6 +1,6 @@
-using Backend.DTOs.Common;
-using Backend.DTOs.Employee;
-using Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.DTOs.Incident;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

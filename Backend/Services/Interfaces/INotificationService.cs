@@ -1,4 +1,4 @@
-using Backend.DTOs.User;
+using SafetyManagementPortal.Backend.DTOs.User;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

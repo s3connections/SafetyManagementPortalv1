@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
-using Backend.Data;
-using Backend.Models;
-using Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.Services.Interfaces;
 
 namespace SafetyManagementPortal.Backend.Services.Implementations
 {

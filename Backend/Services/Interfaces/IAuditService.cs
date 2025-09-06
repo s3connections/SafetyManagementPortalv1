@@ -1,5 +1,5 @@
-using Backend.Models;
-using Backend.Dtos.Audit;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.DTOs.Audit;
 
 namespace SafetyManagementPortal.Backend.Services.Interfaces
 {

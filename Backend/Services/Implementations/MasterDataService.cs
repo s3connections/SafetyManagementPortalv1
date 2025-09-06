@@ -1,14 +1,14 @@
-using Backend.Data;
-using Backend.DTOs.Incident;
-using Backend.Dtos.Audit;
-using Backend.Dtos.Permit;
-using Backend.DTOs.Employee;
-using Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.DTOs.Permit;
+using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Common;
 
 namespace SafetyManagementPortal.Backend.Services.Implementations
 {

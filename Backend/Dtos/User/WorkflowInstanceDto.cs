@@ -1,4 +1,4 @@
-using Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Common;
 
 namespace SafetyManagementPortal.Backend.DTOs.User
 {
