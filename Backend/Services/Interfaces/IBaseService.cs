@@ -1,6 +1,6 @@
 using Backend.Models;
 
-namespace Backend.Services.Interfaces
+namespace SafetyManagementPortal.Backend.Services.Interfaces
 {
     public interface IBaseService<TEntity, TDto, TCreateDto, TUpdateDto> 
         where TEntity : BaseEntity

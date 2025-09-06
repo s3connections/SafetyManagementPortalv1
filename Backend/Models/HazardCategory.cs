@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SafetyManagement.Models
+namespace SafetyManagementPortal.Backend.Models
 {
     public class HazardCategory
     {

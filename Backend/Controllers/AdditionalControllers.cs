@@ -3,7 +3,7 @@ using Backend.Data;
 using Backend.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.Controllers
+namespace SafetyManagementPortal.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

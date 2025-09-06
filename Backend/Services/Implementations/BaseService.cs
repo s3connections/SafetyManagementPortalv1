@@ -4,7 +4,7 @@ using Backend.Data;
 using Backend.Models;
 using Backend.Services.Interfaces;
 
-namespace Backend.Services.Implementations
+namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public abstract class BaseService<TEntity, TDto, TCreateDto, TUpdateDto> : IBaseService<TEntity, TDto, TCreateDto, TUpdateDto>
         where TEntity : BaseEntity

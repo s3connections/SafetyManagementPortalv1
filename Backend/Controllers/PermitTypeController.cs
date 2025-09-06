@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Backend.Services.Interfaces;
 using Backend.Dtos.Permit;
 
-namespace Backend.Controllers
+namespace SafetyManagementPortal.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

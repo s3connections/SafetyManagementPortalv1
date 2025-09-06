@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Dtos.Audit
+namespace SafetyManagementPortal.Backend.DTOs.Audit
 {
     public class CreateAuditDto
     {

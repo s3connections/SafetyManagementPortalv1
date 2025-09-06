@@ -1,4 +1,4 @@
-namespace Backend.Dtos.Audit
+namespace SafetyManagementPortal.Backend.DTOs.Audit
 {
     public class AuditQuestionDto
     {

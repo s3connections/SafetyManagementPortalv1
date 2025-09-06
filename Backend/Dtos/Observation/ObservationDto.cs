@@ -1,6 +1,6 @@
 using Backend.Models;
 
-namespace Backend.Dtos.Observation
+namespace SafetyManagementPortal.Backend.DTOs.Observation
 {
     public class ObservationDto
     {

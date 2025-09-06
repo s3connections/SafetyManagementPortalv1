@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.DTOs.Incident
+namespace SafetyManagementPortal.Backend.DTOs.Incident
 {
     
     

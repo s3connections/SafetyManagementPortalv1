@@ -5,7 +5,7 @@ using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace Backend.Controllers
+namespace SafetyManagementPortal.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

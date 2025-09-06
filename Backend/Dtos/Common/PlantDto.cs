@@ -1,4 +1,4 @@
-namespace Backend.DTOs.Common
+namespace SafetyManagementPortal.Backend.DTOs.Common
 {
     public class PlantDto : BaseDto
     {

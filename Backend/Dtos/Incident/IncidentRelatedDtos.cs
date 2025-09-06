@@ -3,7 +3,7 @@ using Backend.Enums;
 using Backend.DTOs.Incident;
 
 
-namespace Backend.DTOs.Incident
+namespace SafetyManagementPortal.Backend.DTOs.Incident
 {
     
     

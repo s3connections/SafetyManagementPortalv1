@@ -5,7 +5,7 @@ using Backend.Models;
 using Backend.Services.Interfaces;
 using Backend.Dtos.Permit;
 
-namespace Backend.Services.Implementations
+namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class PermitService : BaseService<Permit, PermitDto, CreatePermitDto, UpdatePermitDto>, IPermitService
     {

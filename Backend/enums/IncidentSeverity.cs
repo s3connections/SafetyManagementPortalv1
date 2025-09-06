@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Enums
+namespace SafetyManagementPortal.Backend.enums
 {
     public enum IncidentSeverity
     {

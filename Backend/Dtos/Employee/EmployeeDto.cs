@@ -1,7 +1,7 @@
 using System;
 using Backend.DTOs.Common;
 
-namespace Backend.DTOs.Employee
+namespace SafetyManagementPortal.Backend.DTOs.Employee
 {
     public class EmployeeDto : BaseDto
     {

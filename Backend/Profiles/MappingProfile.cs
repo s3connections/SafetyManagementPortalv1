@@ -4,7 +4,7 @@ using Backend.Dtos.Observation;
 using Backend.Dtos.Audit;
 using Backend.Dtos.Permit;
 
-namespace Backend.Profiles
+namespace SafetyManagementPortal.Backend.Profiles
 {
     public class MappingProfile : Profile
     {

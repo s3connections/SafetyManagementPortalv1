@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Backend.DTOs.Common;
 
-namespace Backend.Services.Implementations
+namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class MasterDataService : IMasterDataService
     {

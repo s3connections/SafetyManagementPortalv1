@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Dtos.Permit
+namespace SafetyManagementPortal.Backend.DTOs.Permit
 {
     public class PermitTypeDto
     {

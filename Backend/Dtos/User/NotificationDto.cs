@@ -1,7 +1,7 @@
 using Backend.DTOs.Common;
 using Backend.DTOs.Employee;
 
-namespace Backend.DTOs.User
+namespace SafetyManagementPortal.Backend.DTOs.User
 {
     public class NotificationDto : BaseDto
     {

@@ -1,0 +1,14 @@
+# Visual Studio / .NET
+bin/
+obj/
+*.user
+*.suo
+*.env
+
+# Node / npm
+node_modules/
+package-lock.json
+yarn.lock
+
+# React build
+frontend/safety-portal/build/

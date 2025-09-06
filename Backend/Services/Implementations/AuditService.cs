@@ -5,7 +5,7 @@ using Backend.Models;
 using Backend.Services.Interfaces;
 using Backend.Dtos.Audit;
 
-namespace Backend.Services.Implementations
+namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class AuditService : BaseService<Audit, AuditDto, CreateAuditDto, UpdateAuditDto>, IAuditService
     {

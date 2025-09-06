@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.DTOs.User
+namespace SafetyManagementPortal.Backend.DTOs.User
 {
     public class PermitDto : BaseDto
     {

@@ -1,7 +1,7 @@
 using Backend.Models;
 using Backend.Dtos.Observation;
 
-namespace Backend.Services.Interfaces
+namespace SafetyManagementPortal.Backend.Services.Interfaces
 {
     public interface IObservationService : IBaseService<Observation, ObservationDto, CreateObservationDto, UpdateObservationDto>
     {

@@ -1,6 +1,6 @@
 using Backend.DTOs.Common;
 
-namespace Backend.DTOs.User
+namespace SafetyManagementPortal.Backend.DTOs.User
 {
     public class WorkflowInstanceDto : BaseDto
     {

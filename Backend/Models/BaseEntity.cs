@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Models
+namespace SafetyManagementPortal.Backend.Models
 {
     public abstract class BaseEntity
     {

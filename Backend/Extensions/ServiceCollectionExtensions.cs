@@ -3,7 +3,7 @@ using Backend.Data;
 using Backend.Services.Interfaces;
 using Backend.Services.Implementations;
 
-namespace Backend.Extensions
+namespace SafetyManagementPortal.Backend.Extensions
 {
     public static class ServiceCollectionExtensions
     {

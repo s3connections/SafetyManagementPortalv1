@@ -2,7 +2,7 @@ using Backend.Models;
 using Backend.DTOs.Incident;
 using Backend.Enums;
 
-namespace Backend.Services.Interfaces
+namespace SafetyManagementPortal.Backend.Services.Interfaces
 {
     public interface IIncidentObservationService : IBaseService<IncidentObservation, IncidentObservationDto, CreateIncidentObservationDto, UpdateIncidentObservationDto>
     {

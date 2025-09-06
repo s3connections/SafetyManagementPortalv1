@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.DTOs.Incident
+namespace SafetyManagementPortal.Backend.DTOs.Incident
 {
     public class CreateIncidentObservationDto
     {

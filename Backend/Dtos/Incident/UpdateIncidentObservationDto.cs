@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Backend.DTOs.Incident
+namespace SafetyManagementPortal.Backend.DTOs.Incident
 {
     public class UpdateIncidentObservationDto
     {

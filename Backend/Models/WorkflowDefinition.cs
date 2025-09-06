@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Backend.Models
+namespace SafetyManagementPortal.Backend.Models
 {
     [Table("WorkflowDefinitions")]
     public class WorkflowDefinition : BaseEntity

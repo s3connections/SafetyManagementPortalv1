@@ -1,7 +1,7 @@
 using Backend.Models;
 using Backend.Dtos.Audit;
 
-namespace Backend.Services.Interfaces
+namespace SafetyManagementPortal.Backend.Services.Interfaces
 {
     public interface IAuditService : IBaseService<Audit, AuditDto, CreateAuditDto, UpdateAuditDto>
     {

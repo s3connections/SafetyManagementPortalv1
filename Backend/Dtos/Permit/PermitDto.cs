@@ -1,6 +1,6 @@
 using Backend.Models;
 
-namespace Backend.Dtos.Permit
+namespace SafetyManagementPortal.Backend.DTOs.Permit
 {
     public class PermitDto
     {

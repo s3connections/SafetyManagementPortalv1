@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Backend.Models;
 
-namespace Backend.Data
+namespace SafetyManagementPortal.Backend.Data
 {
     public class SafetyDbContext : DbContext
     {

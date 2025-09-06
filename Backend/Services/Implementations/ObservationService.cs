@@ -5,7 +5,7 @@ using Backend.Models;
 using Backend.Services.Interfaces;
 using Backend.Dtos.Observation;
 
-namespace Backend.Services.Implementations
+namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class ObservationService : BaseService<Observation, ObservationDto, CreateObservationDto, UpdateObservationDto>, IObservationService
     {

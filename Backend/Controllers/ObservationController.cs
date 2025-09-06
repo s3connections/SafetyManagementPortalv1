@@ -3,7 +3,7 @@ using Backend.Services.Interfaces;
 using Backend.Dtos.Observation;
 using Backend.Models;
 
-namespace Backend.Controllers
+namespace SafetyManagementPortal.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

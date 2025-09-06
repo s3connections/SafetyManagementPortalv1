@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Backend.Models.Entities
+namespace SafetyManagementPortal.Backend.Models
 {
     public enum InvestigationStage
     {

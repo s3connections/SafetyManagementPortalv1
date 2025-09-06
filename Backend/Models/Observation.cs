@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Backend.Models
+namespace SafetyManagementPortal.Backend.Models
 {
     // ✅ FIXED: Aligned with frontend enum values
     public enum ObservationType
