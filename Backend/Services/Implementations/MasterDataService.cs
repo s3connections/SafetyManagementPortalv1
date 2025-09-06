@@ -1,8 +1,9 @@
 using SafetyManagementPortal.Backend.Data;
 using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.DTOs.Department;
 using SafetyManagementPortal.Backend.DTOs.Audit;
 using SafetyManagementPortal.Backend.DTOs.Permit;
-using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.DTOs.Employee;
 using SafetyManagementPortal.Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;

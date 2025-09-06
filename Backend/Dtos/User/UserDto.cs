@@ -1,5 +1,5 @@
 using SafetyManagementPortal.Backend.DTOs.Common;
-using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.DTOs.Employee;
 using SafetyManagementPortal.Backend.DTOs.Incident;
 using System;
 using System.Collections.Generic;

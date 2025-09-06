@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SafetyManagementPortal.Backend.DTOs.Common;
-using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.DTOs.Employee;
 using SafetyManagementPortal.Backend.enums;
 using SafetyManagementPortal.Backend.Models;
 using System;

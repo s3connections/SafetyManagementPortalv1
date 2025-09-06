@@ -1,5 +1,5 @@
 using SafetyManagementPortal.Backend.DTOs.Common;
-using SafetyManagementPortal.Backend.DTOs.employee;
+using SafetyManagementPortal.Backend.DTOs.Employee;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

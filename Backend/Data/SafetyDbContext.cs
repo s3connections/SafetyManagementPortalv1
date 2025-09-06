@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Backend.Models;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.User;
 
 namespace SafetyManagementPortal.Backend.Data
 {

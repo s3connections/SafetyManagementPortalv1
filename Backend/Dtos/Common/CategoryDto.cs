@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace SafetyManagementPortal.Backend.DTOs.Common
 {
     public class CategoryDto : BaseDto

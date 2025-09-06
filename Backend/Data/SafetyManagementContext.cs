@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Backend.Models;
+using SafetyManagementPortal.Backend.Models;
 using System.Linq;
 
 namespace SafetyManagementPortal.Backend.Data

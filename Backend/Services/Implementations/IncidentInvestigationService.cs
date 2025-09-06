@@ -4,6 +4,7 @@ using SafetyManagementPortal.Backend.DTOs.Incident;
 using SafetyManagementPortal.Backend.Models;
 using SafetyManagementPortal.Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using SafetyManagementPortal.Backend.DTOs.Observation;
 using System;
 using System.Collections.Generic;
 using System.Linq;

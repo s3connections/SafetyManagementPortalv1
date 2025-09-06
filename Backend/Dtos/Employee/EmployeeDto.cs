@@ -1,8 +1,18 @@
 using System;
 using System.Collections.Generic;
 using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.DTOs.Employee;
+using SafetyManagementPortal.Backend.DTOs.Observation;
+using SafetyManagementPortal.Backend.DTOs.Permit;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.DTOs.User;
+using SafetyManagementPortal.Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.enums;
+using SafetyManagementPortal.Backend.DTOs.Department;
 
-namespace SafetyManagementPortal.Backend.DTOs.employee
+namespace SafetyManagementPortal.Backend.DTOs.Employee  // Fixed: was "employee" (lowercase)
 {
     public class EmployeeDto : BaseDto
     {
@@ -21,17 +31,5 @@ namespace SafetyManagementPortal.Backend.DTOs.employee
         public bool IsActive { get; set; }
         public int? ReportingManagerId { get; set; }
         public EmployeeDto? ReportingManager { get; set; }
-    }
-
-    public class DepartmentDto : BaseDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public int? ParentDepartmentId { get; set; }
-        public DepartmentDto? ParentDepartment { get; set; }
-        public int? HoDId { get; set; }
-        public EmployeeDto? HoD { get; set; }
-        public bool IsActive { get; set; }
     }
 }

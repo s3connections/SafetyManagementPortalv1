@@ -1,9 +1,15 @@
-using Backend.Dtos.Permit;
-using Backend.DTOs.Common;
-using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Backend.Models;
+using System;
+using System.Collections.Generic;
+using SafetyManagementPortal.Backend.DTOs.Common;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.DTOs.Employee;
+using SafetyManagementPortal.Backend.DTOs.Observation;
+using SafetyManagementPortal.Backend.DTOs.Permit;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.enums;
 
 namespace SafetyManagementPortal.Backend.Controllers
 {

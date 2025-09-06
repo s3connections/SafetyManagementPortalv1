@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Backend.Data;
-using Backend.Services.Interfaces;
-using Backend.Services.Implementations;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Services.Implementations;
 using System.Text.Json.Serialization;
+using SafetyManagementPortal.Backend.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

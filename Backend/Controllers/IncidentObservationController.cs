@@ -1,15 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SafetyManagementPortal.Backend.Data;
-using SafetyManagementPortal.Backend.Models;
+using System;
+using System.Collections.Generic;
 using SafetyManagementPortal.Backend.DTOs.Common;
 using SafetyManagementPortal.Backend.DTOs.Incident;
 using SafetyManagementPortal.Backend.DTOs.Employee;
+using SafetyManagementPortal.Backend.DTOs.Observation;
+using SafetyManagementPortal.Backend.DTOs.Permit;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.DTOs.User;
+using SafetyManagementPortal.Backend.Services.Interfaces;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SafetyManagementPortal.Dtos.Incident;
+using SafetyManagementPortal.Backend.Data;
 
 namespace SafetyManagementPortal.Backend.Controllers
 {

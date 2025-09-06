@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.DTOs.Common;
+
 namespace SafetyManagementPortal.Backend.DTOs.Department
 {
     public class DepartmentDto : BaseDto

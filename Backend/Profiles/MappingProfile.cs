@@ -1,8 +1,8 @@
 using AutoMapper;
-using Backend.Models;
-using Backend.Dtos.Observation;
-using Backend.Dtos.Audit;
-using Backend.Dtos.Permit;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.DTOs.Observation;
+using SafetyManagementPortal.Backend.DTOs.Audit;
+using SafetyManagementPortal.Backend.DTOs.Permit;
 
 namespace SafetyManagementPortal.Backend.Profiles
 {
