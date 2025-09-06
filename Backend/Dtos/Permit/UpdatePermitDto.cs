@@ -30,5 +30,6 @@ namespace SafetyManagementPortal.Backend.DTOs.Permit
         public int? ResponsibleEngineerId { get; set; }
         public int? PlantId { get; set; }
         public int? DepartmentId { get; set; }
+        public DateTime? ApprovedDate { get; set; }
     }
 }

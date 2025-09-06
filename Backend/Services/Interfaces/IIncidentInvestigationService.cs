@@ -10,6 +10,9 @@ namespace SafetyManagementPortal.Backend.Services.Interfaces
     {
         Task<List<IncidentInvestigationDto>> GetByInvestigatorAsync(int investigatorId);
         Task<List<IncidentInvestigationDto>> GetPendingInvestigationsAsync();
+        Task<IEnumerable<IncidentInvestigationDto>> GetAllAsync(int userId);
+        Task<IncidentInvestigationDto> CreateAsync(CreateIncidentInvestigationDto dto);
+        Task<IncidentInvestigationDto> UpdateAsync(int id, UpdateIncidentInvestigationDto dto);
         Task<InvestigationWitnessDto> AddWitnessAsync(CreateInvestigationWitnessDto createDto);
         Task<InvestigationTimelineDto> AddTimelineEntryAsync(int investigationId, string activity, string description);
     }

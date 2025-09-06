@@ -1,72 +1,131 @@
-using SafetyManagementPortal.Backend.Data;
-using SafetyManagementPortal.Backend.DTOs.Common;
-using SafetyManagementPortal.Backend.DTOs.Incident;
-using SafetyManagementPortal.Backend.Models;
-using SafetyManagementPortal.Backend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using SafetyManagementPortal.Backend.DTOs.Observation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using SafetyManagementPortal.Backend.Data;
+using SafetyManagementPortal.Backend.DTOs.Incident;
+using SafetyManagementPortal.Backend.Models;
+using SafetyManagementPortal.Backend.Services.Interfaces;
 
 namespace SafetyManagementPortal.Backend.Services.Implementations
 {
-    public class IncidentInvestigationService : BaseService<IncidentInvestigation, IncidentInvestigationDto, CreateIncidentInvestigationDto, UpdateIncidentInvestigationDto>, IIncidentInvestigationService
+    public class IncidentInvestigationService
+        : BaseService<IncidentInvestigation, IncidentInvestigationDto, CreateIncidentInvestigationDto, UpdateIncidentInvestigationDto>,
+          IIncidentInvestigationService
     {
-        public IncidentInvestigationService(SafetyManagementContext ctx) : base(ctx) { }
+        private readonly SafetyManagementContext _db;
+        private readonly IMapper _mapper;
 
-        private SafetyManagementContext Ctx => (SafetyManagementContext)_context;
-
-        public async Task<IEnumerable<IncidentInvestigationDto>> GetAllAsync(SearchFilter filter)
+        public IncidentInvestigationService(SafetyManagementContext ctx, IMapper mapper)
+            : base(ctx, mapper)
         {
-            var q = Ctx.IncidentInvestigations.Include(i => i.IncidentObservation).Include(i => i.LeadInvestigator).Where(i => !i.IsDeleted);
-            var total = await q.CountAsync();
-            var data = await q.Skip((filter.PageNumber - 1) * filter.PageSize).Take(filter.PageSize)
-                .Select(i => new IncidentInvestigationDto { Id = i.Id, IncidentObservationId = i.IncidentObservationId, InvestigationStatus = i.InvestigationStatus, TargetCompletionDate = i.TargetCompletionDate }).ToListAsync();
-            return new PagedResult<IncidentInvestigationDto> { Items = data, TotalItems = total, PageNumber = filter.PageNumber, PageSize = filter.PageSize, TotalPages = (int)Math.Ceiling((double)total / filter.PageSize) };
+            _db = ctx;
+            _mapper = mapper;
         }
 
+        // 1. Get all investigations for a specific investigator
+        public async Task<IEnumerable<IncidentInvestigationDto>> GetAllAsync(int userId)
+        {
+            var entities = await _db.IncidentInvestigations
+                .Where(i => i.LeadInvestigatorId == userId && !i.IsDeleted)
+                .ToListAsync();
+            return _mapper.Map<IEnumerable<IncidentInvestigationDto>>(entities);
+        }
+
+        // 2. Get single by ID
         public override async Task<IncidentInvestigationDto> GetByIdAsync(int id)
         {
-            var i = await Ctx.IncidentInvestigations.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-            if (i == null) return null;
-            return new IncidentInvestigationDto { Id = i.Id, InvestigationStatus = i.InvestigationStatus, TargetCompletionDate = i.TargetCompletionDate };
+            var ent = await _db.IncidentInvestigations
+                .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
+            return ent == null ? null : _mapper.Map<IncidentInvestigationDto>(ent);
         }
 
+        // 3. Create new investigation
         public override async Task<IncidentInvestigationDto> CreateAsync(CreateIncidentInvestigationDto dto)
         {
-            var ent = new IncidentInvestigation { IncidentObservationId = dto.IncidentObservationId, LeadInvestigatorId = dto.LeadInvestigatorId, TargetCompletionDate = dto.TargetCompletionDate, InitialFindings = dto.InitialFindings, CreatedAt = DateTime.UtcNow, CreatedBy = 1 };
-            Ctx.IncidentInvestigations.Add(ent);
-            await Ctx.SaveChangesAsync();
-            return new IncidentInvestigationDto { Id = ent.Id, InvestigationStatus = ent.InvestigationStatus };
+            var ent = new IncidentInvestigation
+            {
+                IncidentObservationId = dto.IncidentObservationId,
+                LeadInvestigatorId = dto.LeadInvestigatorId,
+                TargetCompletionDate = dto.TargetCompletionDate,
+                InitialFindings = dto.InitialFindings,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = dto.CreatedBy
+            };
+            _db.IncidentInvestigations.Add(ent);
+            await _db.SaveChangesAsync();
+            return _mapper.Map<IncidentInvestigationDto>(ent);
         }
 
+        // 4. Update existing investigation
         public override async Task<IncidentInvestigationDto> UpdateAsync(int id, UpdateIncidentInvestigationDto dto)
         {
-            var ent = await Ctx.IncidentInvestigations.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+            var ent = await _db.IncidentInvestigations
+                .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
             if (ent == null) return null;
-            if (dto.CompletedDate.HasValue) { ent.CompletedDate = dto.CompletedDate; ent.InvestigationStatus = "Completed"; }
-            ent.UpdatedAt = DateTime.UtcNow; ent.UpdatedBy = 1; await Ctx.SaveChangesAsync();
-            return new IncidentInvestigationDto { Id = ent.Id, InvestigationStatus = ent.InvestigationStatus };
+
+            if (dto.CompletedDate.HasValue)
+            {
+                ent.CompletedDate = dto.CompletedDate;
+                ent.InvestigationStatus = "Completed";
+            }
+
+            ent.UpdatedAt = DateTime.UtcNow;
+            ent.UpdatedBy = dto.UpdatedBy;
+
+            await _db.SaveChangesAsync();
+            return _mapper.Map<IncidentInvestigationDto>(ent);
         }
 
-        public async Task<List<IncidentInvestigationDto>> GetByInvestigatorAsync(int investigatorId) => await Ctx.IncidentInvestigations.Where(i => i.LeadInvestigatorId == investigatorId && !i.IsDeleted).Select(i => new IncidentInvestigationDto { Id = i.Id, InvestigationStatus = i.InvestigationStatus }).ToListAsync();
+        // 5. Get by investigator ID (alias for GetAllAsync)
+        public Task<List<IncidentInvestigationDto>> GetByInvestigatorAsync(int investigatorId) =>
+            _db.IncidentInvestigations
+               .Where(i => i.LeadInvestigatorId == investigatorId && !i.IsDeleted)
+               .ProjectTo<IncidentInvestigationDto>(_mapper.ConfigurationProvider)
+               .ToListAsync();
 
-        public async Task<List<IncidentInvestigationDto>> GetPendingInvestigationsAsync() => await Ctx.IncidentInvestigations.Where(i => i.InvestigationStatus == "In Progress" && !i.IsDeleted).Select(i => new IncidentInvestigationDto { Id = i.Id, InvestigationStatus = i.InvestigationStatus }).ToListAsync();
+        // 6. Get pending investigations
+        public Task<List<IncidentInvestigationDto>> GetPendingInvestigationsAsync() =>
+            _db.IncidentInvestigations
+               .Where(i => i.InvestigationStatus == "In Progress" && !i.IsDeleted)
+               .ProjectTo<IncidentInvestigationDto>(_mapper.ConfigurationProvider)
+               .ToListAsync();
 
+        // 7. Add a witness
         public async Task<InvestigationWitnessDto> AddWitnessAsync(CreateInvestigationWitnessDto dto)
         {
-            var w = new InvestigationWitness { IncidentObservationId = dto.IncidentObservationId, EmployeeId = dto.EmployeeId, Statement = dto.Statement, InterviewDate = dto.InterviewDate, CreatedAt = DateTime.UtcNow, CreatedBy = 1 };
-            Ctx.InvestigationWitnesses.Add(w); await Ctx.SaveChangesAsync();
-            return new InvestigationWitnessDto { Id = w.Id, Statement = w.Statement };
+            var w = new InvestigationWitness
+            {
+                IncidentObservationId = dto.IncidentObservationId,
+                EmployeeId = dto.EmployeeId,
+                Statement = dto.Statement,
+                InterviewDate = dto.InterviewDate,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = dto.CreatedBy
+            };
+            _db.InvestigationWitnesses.Add(w);
+            await _db.SaveChangesAsync();
+            return _mapper.Map<InvestigationWitnessDto>(w);
         }
 
-        public async Task<InvestigationTimelineDto> AddTimelineEntryAsync(int id, string act, string desc)
+        // 8. Add a timeline entry
+        public async Task<InvestigationTimelineDto> AddTimelineEntryAsync(int investigationId, string activity, string description)
         {
-            var t = new InvestigationTimeline { InvestigationId = id, Activity = act, Description = desc, ActivityDate = DateTime.UtcNow, PerformedById = 1, CreatedAt = DateTime.UtcNow, CreatedBy = 1 };
-            Ctx.InvestigationTimelines.Add(t); await Ctx.SaveChangesAsync();
-            return new InvestigationTimelineDto { Id = t.Id, Activity = act, Description = desc };
+            var t = new InvestigationTimeline
+            {
+                InvestigationId = investigationId,
+                Activity = activity,
+                Description = description,
+                ActivityDate = DateTime.UtcNow,
+                PerformedById = 1,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = 1
+            };
+            _db.InvestigationTimelines.Add(t);
+            await _db.SaveChangesAsync();
+            return _mapper.Map<InvestigationTimelineDto>(t);
         }
     }
 }

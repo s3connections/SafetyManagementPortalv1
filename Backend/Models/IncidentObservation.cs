@@ -40,7 +40,7 @@ namespace SafetyManagementPortal.Backend.Models
         public int? InvestigatedByUserId { get; set; }
         public DateTime? InvestigationCompletedDate { get; set; }
         public string? RootCauseAnalysis { get; set; }
-        
+
         public int? PlantId { get; set; }
         public int? DepartmentId { get; set; }
         public int PriorityId { get; set; }
@@ -60,12 +60,19 @@ namespace SafetyManagementPortal.Backend.Models
 
         [ForeignKey(nameof(DepartmentId))]
         public virtual Department? Department { get; set; }
-        
+
         [ForeignKey(nameof(PriorityId))]
         public virtual Priority Priority { get; set; } = null!;
-        
+
         // ✅ ADDED: Reporter alias for consistency
         [NotMapped]
         public virtual User Reporter => ReportedByUser;
+        public string IncidentNumber { get; set; } = string.Empty;
+        public int IncidentTypeId { get; set; }
+        public int LocationId { get; set; }
+        public DateTime DateTimeObserved { get; set; }
+        public int ReportedById { get; set; }
+        public string ImmediateActions { get; set; } = string.Empty;
+        public int StatusId { get; set; }
     }
 }

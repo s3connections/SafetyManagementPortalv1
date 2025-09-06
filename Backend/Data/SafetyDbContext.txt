@@ -3,12 +3,13 @@ using SafetyManagementPortal.Backend.Models;
 using SafetyManagementPortal.Backend.DTOs.Audit;
 using SafetyManagementPortal.Backend.DTOs.Common;
 using SafetyManagementPortal.Backend.DTOs.User;
+using SafetyManagementPortal.Backend.Data;
 
 namespace SafetyManagementPortal.Backend.Data
 {
-    public class SafetyDbContext : DbContext
+    public class SafetyManagementContext : DbContext
     {
-        public SafetyDbContext(DbContextOptions<SafetyDbContext> options) : base(options)
+        public SafetyManagementContext(DbContextOptions<SafetyManagementContext> options) : base(options)
         {
         }
 

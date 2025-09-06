@@ -16,6 +16,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SafetyManagementPortal.Backend.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
 
 namespace SafetyManagementPortal.Backend.Controllers
 {

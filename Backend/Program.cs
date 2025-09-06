@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Entity Framework
-builder.Services.AddDbContext<SafetyDbContext>(options =>
+builder.Services.AddDbContext<SafetyManagementContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add AutoMapper
@@ -66,7 +66,7 @@ app.MapControllers();
 // Ensure database is created and seeded
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<SafetyDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<SafetyManagementContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     
     try
@@ -86,7 +86,7 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-static async Task SeedDataAsync(SafetyDbContext context, ILogger logger)
+static async Task SeedDataAsync(SafetyManagementContext context, ILogger logger)
 {
     try
     {

@@ -9,7 +9,7 @@ namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class PermitTypeService : BaseService<PermitType, PermitTypeDto, CreatePermitTypeDto, UpdatePermitTypeDto>, IPermitTypeService
     {
-        public PermitTypeService(SafetyDbContext context, IMapper mapper) 
+        public PermitTypeService(SafetyManagementContext context, IMapper mapper) 
             : base(context, mapper)
         {
         }

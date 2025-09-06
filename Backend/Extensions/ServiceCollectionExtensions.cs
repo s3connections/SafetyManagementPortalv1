@@ -10,7 +10,7 @@ namespace SafetyManagementPortal.Backend.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             // Add Entity Framework
-            services.AddDbContext<SafetyDbContext>(options =>
+            services.AddDbContext<SafetyManagementContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             // Add AutoMapper

@@ -18,25 +18,28 @@ namespace SafetyManagementPortal.Backend.DTOs.Permit
         public DateTime? ApprovedDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        
+
         // User information
         public int RequestedByUserId { get; set; }
         public string RequestedByUserName { get; set; } = string.Empty;
         public string RequestedByUserEmail { get; set; } = string.Empty;
-        
+
         public int? ApprovedByUserId { get; set; }
         public string? ApprovedByUserName { get; set; }
         public string? ApprovedByUserEmail { get; set; }
-        
+
         public int? ResponsibleEngineerId { get; set; }
         public string? ResponsibleEngineerName { get; set; }
         public string? ResponsibleEngineerEmail { get; set; }
-        
+
         // Plant and Department information
         public int? PlantId { get; set; }
         public string? PlantName { get; set; }
-        
+
         public int? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
+        public int RequestedById { get; set; }      // Model must define this
+        public int ApprovedById { get; set; }       // Model must define this
+
     }
 }

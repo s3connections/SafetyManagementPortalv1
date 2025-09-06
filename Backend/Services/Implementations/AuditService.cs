@@ -9,7 +9,7 @@ namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class AuditService : BaseService<Audit, AuditDto, CreateAuditDto, UpdateAuditDto>, IAuditService
     {
-        public AuditService(SafetyDbContext context, IMapper mapper) 
+        public AuditService(SafetyManagementContext context, IMapper mapper) 
             : base(context, mapper)
         {
         }

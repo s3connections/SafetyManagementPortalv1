@@ -1,6 +1,9 @@
 using SafetyManagementPortal.Backend.DTOs.User;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Threading.Tasks;  // for async methods
+
 
 namespace SafetyManagementPortal.Backend.Services.Interfaces
 {

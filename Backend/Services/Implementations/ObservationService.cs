@@ -9,7 +9,7 @@ namespace SafetyManagementPortal.Backend.Services.Implementations
 {
     public class ObservationService : BaseService<Observation, ObservationDto, CreateObservationDto, UpdateObservationDto>, IObservationService
     {
-        public ObservationService(SafetyDbContext context, IMapper mapper) 
+        public ObservationService(SafetyManagementContext context, IMapper mapper) 
             : base(context, mapper)
         {
         }

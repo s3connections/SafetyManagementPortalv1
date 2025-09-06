@@ -9,11 +9,11 @@ namespace SafetyManagementPortal.Backend.Services.Implementations
     public abstract class BaseService<TEntity, TDto, TCreateDto, TUpdateDto> : IBaseService<TEntity, TDto, TCreateDto, TUpdateDto>
         where TEntity : BaseEntity
     {
-        protected readonly SafetyDbContext _context;
+        protected readonly SafetyManagementContext _context;
         protected readonly IMapper _mapper;
         protected readonly DbSet<TEntity> _dbSet;
 
-        protected BaseService(SafetyDbContext context, IMapper mapper)
+        protected BaseService(SafetyManagementContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

@@ -9,6 +9,10 @@ using SafetyManagementPortal.Backend.DTOs.User;
 using SafetyManagementPortal.Backend.Services.Interfaces;
 using SafetyManagementPortal.Backend.enums;
 using SafetyManagementPortal.Backend.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
 
 namespace SafetyManagementPortal.Backend.Controllers
 {
@@ -16,9 +20,9 @@ namespace SafetyManagementPortal.Backend.Controllers
     [Route("api/[controller]")]
     public class PlantController : ControllerBase
     {
-        private readonly SafetyDbContext _context;
+        private readonly SafetyManagementContext _context;
 
-        public PlantController(SafetyDbContext context)
+        public PlantController(SafetyManagementContext context)
         {
             _context = context;
         }
@@ -108,9 +112,9 @@ namespace SafetyManagementPortal.Backend.Controllers
     [Route("api/[controller]")]
     public class DepartmentController : ControllerBase
     {
-        private readonly SafetyDbContext _context;
+        private readonly SafetyManagementContext _context;
 
-        public DepartmentController(SafetyDbContext context)
+        public DepartmentController(SafetyManagementContext context)
         {
             _context = context;
         }
@@ -202,9 +206,9 @@ namespace SafetyManagementPortal.Backend.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly SafetyDbContext _context;
+        private readonly SafetyManagementContext _context;
 
-        public UserController(SafetyDbContext context)
+        public UserController(SafetyManagementContext context)
         {
             _context = context;
         }

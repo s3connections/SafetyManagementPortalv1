@@ -11,6 +11,10 @@ using SafetyManagementPortal.Backend.DTOs.User;
 using SafetyManagementPortal.Backend.Services.Interfaces;
 using SafetyManagementPortal.Backend.Models;
 using SafetyManagementPortal.Backend.enums;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
 
 namespace SafetyManagementPortal.Backend.Controllers
 {

@@ -14,6 +14,10 @@ using SafetyManagementPortal.Backend.enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using SafetyManagementPortal.Backend.DTOs.Department;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
 
 namespace SafetyManagementPortal.Backend.Controllers
 {
